@@ -1,0 +1,9 @@
+TODO
+
+x read solana docs Programming Model
+. study sealevel
+. study token program
+. study native programs
+. study solana program library, SPL
+
+

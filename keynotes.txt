@@ -1,0 +1,21 @@
+THESE ARE IMPORTANT TIDBITS
+
+blairmunroakusa@0810.020722.anch.AK:bedroomstudy
+
+. solana tool version must match cluster version
+. currently, all new accounts must be rent exempt
+. SECURE: programs should check read account validity
+. derive accounts with
+	. SystemProgram::CreateAccountWithSeed
+	. Pubkey::CreateProgramAddress
+. account max storage size is 10MB
+. SECURE: acct deinitialization -- program should explicitly zero acct data
+. SECURE: programs must be hardeded to handle tx instr in any order
+. rusts bincode is very inefficient (c solana docs)
+	. solanas token program profides counter eg
+
+blairmunroakusa@1903.020622.anch.AK:bedroomstudy
+
+. JSON RPC methods for SPL token will be useful
+
+
