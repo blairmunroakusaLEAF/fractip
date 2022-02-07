@@ -18,7 +18,7 @@ Procrastinating...reading aimlessly through escrow example...already been here.
 
 App interacts with programs by sending tx and instructions to runtime. Programs are deployed by app devs prior to. Instructions are exe sequentially and atomically for each tx. Interaction is atomic => any invalid instr invalidates interaction.
 
-###. TRANSACTIONS
+### . TRANSACTIONS
 
 Runtime executes apporpriate programs to carry out given instructions.
 
@@ -79,7 +79,7 @@ INSTRUCTION FORMAT
 . the hash allows of rejection of any tx that is identical to another
 ```
 
-###. ACCOUNTS
+### . ACCOUNTS
 
 ####	. STORING STATES BETWEEN TX (ACCOUNTS)
 ```
@@ -162,7 +162,7 @@ RENT EXEMPTION
 . EG, program exe = 15000B requires 105,290,880 lamports (~0.105 SOL)
 ```
 
-###. RUNTIME
+### . RUNTIME
 
 ####	. CAPABILITY OF PROGRAMS
 ```
@@ -202,7 +202,7 @@ CURRENT BUDGET
 . stack frame size = 4096 (4k)
 ```
 
-###. CALLING BETWEEN PROGRAMS 
+### . CALLING BETWEEN PROGRAMS 
 
 ####	. CROSS PROGRAM INVOKATION
 ```
