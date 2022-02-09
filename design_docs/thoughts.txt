@@ -1,5 +1,10 @@
 THOUGHTS
 
+blairmunroakusa@0845.020822.anch.AK:redcouch
+
+. the 'all new accounts must be rent-exempt' bit is bothering me
+. perhaps I need to use a framework like anchor to save on time/pain
+
 blairmunroakusa@0939.020722.anch.AK:bedroomstudy
 
 . so rent is by size (expected) thus concern now is tx fee for one acct per piece

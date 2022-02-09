@@ -1,5 +1,13 @@
 THESE ARE IMPORTANT TIDBITS
 
+blairmunroakusa@0847.020822.anch.AK:redcouch
+
+
+
+blairmunroakusa@1613.020722.anch.AK:bedroomstudy
+
+. use clap to create CLI app, and rust API to connect to on-chain programs
+
 blairmunroakusa@0810.020722.anch.AK:bedroomstudy
 
 . solana tool version must match cluster version
@@ -8,7 +16,7 @@ blairmunroakusa@0810.020722.anch.AK:bedroomstudy
 . derive accounts with
 	. SystemProgram::CreateAccountWithSeed
 	. Pubkey::CreateProgramAddress
-. account max storage size is 10MB
+. account max storage size is 10MB (!!!8700$!!!)
 . SECURE: acct deinitialization -- program should explicitly zero acct data
 . SECURE: programs must be hardeded to handle tx instr in any order
 . rusts bincode is very inefficient (c solana docs)

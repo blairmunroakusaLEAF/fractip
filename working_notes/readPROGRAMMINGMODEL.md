@@ -1,16 +1,3 @@
-### WORKING NOTES blairmunroakusa@1828.020622.anch.AK:bedroomstudy
-
-I need to get setup and I need to yank the escrow program reference implementation from solana web:
-
-[https://paulx.dev/blog/2021/01/14/programming-on-solana-an-introduction/](https://paulx.dev/blog/2021/01/14/programming-on-solana-an-introduction/)
-
-For setup, I need to get situated with the CLI. PATH echo says I should be in business, but bash doesn't recognize 'solana'.
-
-Ok just needed to reinstall and update PATH. Now I am looking at the token program command line utility. Installing the rust crates now and there are a lot. 
-
-It looks like I am all set up for now.
-
-Procrastinating...reading aimlessly through escrow example...already been here.
 
 ## PROGRAMMING MODEL (solana documentation)
 
@@ -57,7 +44,7 @@ INSTRUCTION FORMAT
 . programs can specify how much info is encoded into opaque Barray
 ```
 
-### WORKING NOTES RESUMED blairmunroakusa@0816.020722.anch.AK:bedroomstudy
+### PROGRAMMING MODEL NOTES RESUMED blairmunroakusa@0816.020722.anch.AK:bedroomstudy
 
 #####	. INSTRUCTIONS
 ```
