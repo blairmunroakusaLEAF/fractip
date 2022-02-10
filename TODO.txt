@@ -1,6 +1,5 @@
 TODO
 
-
 . collect reference implementations
 x read solana docs Programming Model
 . study sealevel

@@ -1,0 +1,10 @@
+DESIGN CONSTRAINTS
+. rent is expensive, account size and number must be kept to minimum
+	GOAL: one piece (payfract node) costs 0.1 - 0.5 $ to erect
+	. to achieve, only enough info to manage payments should be on-chain
+
+NECESSARY INSTRUCTIONS
+. create_piece
+. tip_piece
+. link_piece
+. tree_piece

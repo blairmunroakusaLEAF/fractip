@@ -1,6 +1,24 @@
 # LOG
 
 ```
+blairmunroakusa@1855.020922.anch.AK:FT
+
+. drafting out node structure and program flow candidates
+```
+
+```
+blairmunroakusa@1300.020922.anch.AK:KBC
+
+. reading solana hello world typescript client
+```
+
+```
+blairmunroakusa@0733.020922.anch.AK:redcouch
+
+. reading reference implementations
+```
+
+```
 blairmunroakusa@1515.020822.anch.AK:redcouch
 
 . taking break to work on authentification design doc

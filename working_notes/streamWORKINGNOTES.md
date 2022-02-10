@@ -1,6 +1,14 @@
 # GENERAL WORKING NOTES
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#### blairmunroakusa@1251.020922.anch.AK:KBC
+
+So, programmatically, an account is just a serialized struct. (from hello world)
+
+#### blairmunroakusa@0735.020922.anch.AK:redcouch
+
+Ok, that was a lot of reading.
+
+
 
 #### blairmunroakusa@0856.020822.anch.AK:redcouch
 
@@ -65,7 +73,6 @@ SILVER . rust / react / javascript / node
 Now I am skimming the refs for notes.
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #### blairmunroakusa@1828.020622.anch.AK:bedroomstudy
 
