@@ -1,6 +1,8 @@
 TODO
 
-. collect reference implementations
+. understand account search implications
+. understand discriminators
+x collect reference implementations
 x read solana docs Programming Model
 . study sealevel
 	. study anchor

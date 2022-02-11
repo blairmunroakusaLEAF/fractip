@@ -1,6 +1,14 @@
 # LOG
 
 ```
+blairmunroakusa@0652.021022.anch.AK:redcouch
+
+. lots of thinking on architecture and long-game
+. writing storm to work out payfract design
+
+```
+
+```
 blairmunroakusa@1855.020922.anch.AK:FT
 
 . drafting out node structure and program flow candidates
