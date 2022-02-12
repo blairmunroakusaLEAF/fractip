@@ -1,0 +1,7 @@
+TODO, IMPLEMENTATION
+
+. determine Schema and Class for borsh serialization.
+	~ this is because I need to pass multiple arguments in acct data
+. create unpack_X function per input variable
+. figure out how to tag all different instructions in client
+. create 

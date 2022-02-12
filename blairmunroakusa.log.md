@@ -1,6 +1,21 @@
 # LOG
 
 ```
+blairmunroakusa@1602.021122.anch.AK:FT
+
+. 
+. mindlinking paulx, helloworld extension, helloworld
+. figuring out where to start
+```
+```
+blairmunroakusa@0515.021122.anch.AK:goldcouch
+
+. writing storm resolving piece structure
+. reading up on javascript RSA capabilities
+. reading up on discriminators
+. researching validation via certiks
+```
+```
 blairmunroakusa@0652.021022.anch.AK:redcouch
 
 . lots of thinking on architecture and long-game

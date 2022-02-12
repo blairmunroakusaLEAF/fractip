@@ -1,8 +1,8 @@
 THESE ARE IMPORTANT TIDBITS
 
-blairmunroakusa@0847.020822.anch.AK:redcouch
+blairmunroakusa@1603.021122.anch.AK:FT
 
-
+. paulx's token creator UI might be perfect front end
 
 blairmunroakusa@1613.020722.anch.AK:bedroomstudy
 
