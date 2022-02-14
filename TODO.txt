@@ -1,7 +1,7 @@
 TODO
 
-. understand account search implications
-. understand discriminators
+x understand account search implications
+x understand discriminators
 x collect reference implementations
 x read solana docs Programming Model
 . study sealevel

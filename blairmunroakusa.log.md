@@ -1,9 +1,33 @@
 # LOG
 
 ```
+blairmunroakusa@1356.021322.anch.AK:goldcouch
+
+. figuring out how to manage account ownership
+```
+```
+blairmunroakusa@0736.021322.anch.AK:redcouch
+
+. creating code skeleton for server side
+```
+```
+blairmunroakusa@1454.021222.anch.AK:goldcouch
+
+. studying serialization technique
+. studying CPI
+```
+```
+blairmunroakusa@0711.021222.anch.AK:goldcouch
+
+. determining compute budget cost of deriving accts from seeds
+. studying SPL
+. crawling code examples, studying pieces
+
+```
+```
 blairmunroakusa@1602.021122.anch.AK:FT
 
-. 
+. working on building out skeleton
 . mindlinking paulx, helloworld extension, helloworld
 . figuring out where to start
 ```

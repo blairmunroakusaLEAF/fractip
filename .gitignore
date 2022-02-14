@@ -1,5 +1,8 @@
 # ignore
 
+# rust stuff
+/target/
+
 # soft local navigation links
 *\[
 ]*
