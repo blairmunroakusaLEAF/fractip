@@ -1,6 +1,41 @@
 # LOG
 
 ```
+blairmunroakusa@0455.022422.anch.AK:goldcouch
+
+. writing out new flow from dream
+. update github
+```
+```
+blairmunroakusa@0600.022322.anch.AK:upstairs
+
+. forum post asking about compute budget and pda derivation
+. writing out some pseudocode and data types
+```
+```
+blairmunroakusa@1547.022122.anch.AK:FT
+
+. taking some time to write about design after having 6 days' break
+```
+```
+blairmunroakusa@0650.021622.anch.AK:redcouch
+
+. reviewing progress since yesterday in writing storm
+```
+```
+blairmunroakusa@0630.021522.anch.AK:redcouch
+
+. working on figuring out the fingerprint nonsense
+```
+```
+blairmunroakusa@0520.021422.anch.AK:goldcouch
+
+. Figuring out how to link wallets
+. I need to figure out how permissions will work
+	. got it .. fingerprint
+. updating github
+```
+```
 blairmunroakusa@1356.021322.anch.AK:goldcouch
 
 . figuring out how to manage account ownership

@@ -6,4 +6,6 @@ fn main() {
 
     let (pda, bump_seed) = Pubkey::find_program_address(&[b"2"], &program_id);
     println!("pda: {}, bump: {}", pda, bump_seed);
+
+
 }

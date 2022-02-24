@@ -4,6 +4,8 @@
 #### [BRANCH](https://github.com/blairmunroakusaBRANCH)
 #### [LEAF](https://github.com/blairmunroakusaLEAF)
 
+So far this project is in design phase and is a mess of documents strewn about this repository.
+
 ```
  Welcome to my Solana fractal/fractional payment project
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

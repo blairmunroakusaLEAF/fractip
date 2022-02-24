@@ -33,6 +33,13 @@ pub enum PayfractInstruction {
         fract: u32,     // 
         disco: u8,      // least sig bit high == disconnected ref (disco=1)
     }
+    // instruction to create piece ref account
+    PropagateContribution {
+
+        target: Pubkey,
+        fract: u32,     // 
+        disco: u8,      // least sig bit high == disconnected ref (disco=1)
+    }
 }
 
 
@@ -53,6 +60,11 @@ impl PayfractInstruction {
                 piece_id: Self::extract_piece_id(rest)?,
             },
             2 => Self::CreatePieceRef {
+                target: Self::extract_target(rest)?,
+                fract: Self::extract_fract(rest)?,
+                disco: Self::extract_disco(rest)?,
+            },
+            3 => Self::PropagateContribution {
                 target: Self::extract_target(rest)?,
                 fract: Self::extract_fract(rest)?,
                 disco: Self::extract_disco(rest)?,
