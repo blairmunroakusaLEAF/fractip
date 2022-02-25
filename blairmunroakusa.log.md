@@ -1,8 +1,28 @@
 # LOG
 
 ```
+blairmunroakusa@0440.022522.anch.AK:gold couch
+
+. undoing git fuckupery
+```
+```
+blairmunroakusa@1757.022422.anch.AK:redcouch
+
+. wrote out payfractal flow for one piece round
+. need to determine if payfract can hit all refs on push (or need be one tx at a time)
+	. reason for all at once is a failure in one would roll back tx, otherwise flagging may be needed
+	. nope. needs to be one at a time for scaleability (ie thousands of ref accounts)
+
+blairmunroakusa@1333.022422.anch.AK:KBC
+
+. dialing in rust and ts structs
+. picking at hello world client side typescript
+
 blairmunroakusa@0455.022422.anch.AK:goldcouch
 
+. finalizing types
+. looking into how to check string input for size
+. slapping together hello world to test compute budget pda cost
 . writing out new flow from dream
 . update github
 ```
