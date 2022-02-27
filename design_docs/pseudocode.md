@@ -31,18 +31,18 @@ generate_invite_key(memoryslug String, pieceID Address) -> <slug.pubkey Inviteke
 
 data types:
 ```
-account						54
+account						86
 	onchain				13
-		flags u8		1
-		operator Pubkey		32
+		flags u8		2
+		operator Pubkey		64
 		net u64			8
 		bal u64			8
 	offchain (temp)
 		
 piece
-	onchain					117
-		flags u8		1
-		operator Pubkey		32
+	onchain					149
+		flags u8		2
+		operator Pubkey		64
 		bal u64			8
 		net u64			8
 		pieceID String		68
@@ -50,7 +50,7 @@ piece
 
 ref
 	onchain					65
-		flags u8		1
+		flags u8		2
 		target Pubkey		32
 		fract u32		4
 		net u64			8

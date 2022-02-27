@@ -8,8 +8,9 @@ use solana_program::{
     pubkey::Pubkey,
     sysvar::{rent::Rent, Sysvar},
 };
+use bit_vec::BitVec;
 
-use crate::{error::EscrowError, instruction::EscrowInstruction, state::Escrow};
+use crate::{error::PayfractError, instruction::PayfractInstruction, state::{MAIN, PIECE, REF};
 
 pub struct Processor;
 
@@ -25,14 +26,28 @@ impl Processor {
 
         match instruction {
 
-            PayfractInstruction::CreateOperatorMain {
-                fingerprint,
-                operator_id,
+            PayfractInstruction::InitMAIN {
+                sizeMAIN,
+                bumpMAIN,
+                sizePIECE,
+                bumpPIECE,
+                sizeREF,
+                bumpREF,
+                operatorID,
             } => {
-                msg!("Instruction: CreateOperatorMain");
-                Self::process_create_operator_main(program_id, accounts, fingerprint, operator_id)
+                msg!("Instruction: InitMAIN");
+                Self::process_init_main(
+                    program_id,
+                    accounts,
+                    sizeMAIN,
+                    bumpMAIN,
+                    sizePIECE,
+                    bumpPIECE,
+                    sizeREF,
+                    bumpREF,
+                    operatorID);
             }
-
+/*
             PayfractInstruction::CreatePieceMain {
                 fingerprint,
                 piece_id,
@@ -48,125 +63,176 @@ impl Processor {
             } => {
                 msg!("Processing 'CreatePieceRef' instruction...");
                 Self::process_create_piece_ref(program_id, accounts, target, fract, disco)
-            }
+            }*/
         }
     }
 
-    fn process_create_operator_main(
+    fn process_init_main(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
-        fingerprint: Pubkey,
-        operator_id: String,
+        sizeMAIN: u8
+        bumpMAIN: u8,
+        sizePIECE: u8,
+        bumpPIECE: u8,
+        sizeREF: u8,
+        bumpREF: u8,
+        operatorID: &str,
     ) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
-        let taker = next_account_info(account_info_iter)?;
+        
+        // account #1
+        let operator = next_account_info(account_info_iter)?;
 
-        if !taker.is_signer {
+        if !operator.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
         }
+        
+        // account #2
+        let rent = &Rent::from_account_info(next_account_info(account_info_iter)?)?;
 
-        let takers_sending_token_account = next_account_info(account_info_iter)?;
+        // account #3
+        let pdaMAIN = next_account_info(account_info_iter)?;
+        
+        // account #4
+        let pdaPIECE = next_account_info(account_info_iter)?;
 
-        let takers_token_to_receive_account = next_account_info(account_info_iter)?;
+        // account #5
+        let pdaREF = next_account_info(account_info_iter)?;
 
-        let pdas_temp_token_account = next_account_info(account_info_iter)?;
-        let pdas_temp_token_account_info =
-            TokenAccount::unpack(&pdas_temp_token_account.try_borrow_data()?)?;
-        let (pda, nonce) = Pubkey::find_program_address(&[b"escrow"], program_id);
+        // prep to create MAIN pda
+        let rentMAIN = rent.minimum_balance(sizeMAIN.into());
+        
+        // prep to create self PIECE pda
+        let rentPIECE = rent.minimum_balance(sizePIECE.into());
 
-        if amount_expected_by_taker != pdas_temp_token_account_info.amount {
-            return Err(EscrowError::ExpectedAmountMismatch.into());
-        }
+        // prep to create self REF pda
+        let rentREF = rent.minimum_balance(sizeREF.into());
 
-        let initializers_main_account = next_account_info(account_info_iter)?;
-        let initializers_token_to_receive_account = next_account_info(account_info_iter)?;
-        let escrow_account = next_account_info(account_info_iter)?;
-
-        let escrow_info = Escrow::unpack(&escrow_account.try_borrow_data()?)?;
-
-        if escrow_info.temp_token_account_pubkey != *pdas_temp_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        if escrow_info.initializer_pubkey != *initializers_main_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        if escrow_info.initializer_token_to_receive_account_pubkey
-            != *initializers_token_to_receive_account.key
-        {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        let token_program = next_account_info(account_info_iter)?;
-
-        let transfer_to_initializer_ix = spl_token::instruction::transfer(
-            token_program.key,
-            takers_sending_token_account.key,
-            initializers_token_to_receive_account.key,
-            taker.key,
-            &[&taker.key],
-            escrow_info.expected_amount,
-        )?;
-        msg!("Calling the token program to transfer tokens to the escrow's initializer...");
-        invoke(
-            &transfer_to_initializer_ix,
-            &[
-                takers_sending_token_account.clone(),
-                initializers_token_to_receive_account.clone(),
-                taker.clone(),
-                token_program.clone(),
-            ],
-        )?;
-
-        let pda_account = next_account_info(account_info_iter)?;
-
-        let transfer_to_taker_ix = spl_token::instruction::transfer(
-            token_program.key,
-            pdas_temp_token_account.key,
-            takers_token_to_receive_account.key,
-            &pda,
-            &[&pda],
-            pdas_temp_token_account_info.amount,
-        )?;
-        msg!("Calling the token program to transfer tokens to the taker...");
+        // create pdaMAIN
         invoke_signed(
-            &transfer_to_taker_ix,
-            &[
-                pdas_temp_token_account.clone(),
-                takers_token_to_receive_account.clone(),
-                pda_account.clone(),
-                token_program.clone(),
-            ],
-            &[&[&b"escrow"[..], &[nonce]]],
+        &system_instruction::create_account(
+            &operator.key,
+            &pdaMAIN.key,
+            rentMAIN,
+            sizeMAIN.into(),
+            program_id
+        ),
+        &[
+            operator.clone(),
+            pdaMAIN.clone()
+        ],
+        &[&[&operator.key.as_ref(), &[bumpMAIN]]]
         )?;
 
-        let close_pdas_temp_acc_ix = spl_token::instruction::close_account(
-            token_program.key,
-            pdas_temp_token_account.key,
-            initializers_main_account.key,
-            &pda,
-            &[&pda],
-        )?;
-        msg!("Calling the token program to close pda's temp account...");
+        // create pdaPIECEself
         invoke_signed(
-            &close_pdas_temp_acc_ix,
-            &[
-                pdas_temp_token_account.clone(),
-                initializers_main_account.clone(),
-                pda_account.clone(),
-                token_program.clone(),
-            ],
-            &[&[&b"escrow"[..], &[nonce]]],
+        &system_instruction::create_account(
+            &operator.key,
+            &pdaPIECE.key,
+            rentPIECE,
+            sizePIECE.into(),
+            program_id
+        ),
+        &[
+            operator.clone(),
+            pdaPIECE.clone()
+        ],
+        &[&[&operator.key.as_ref(), &[bumpPIECE]]]
         )?;
 
-        msg!("Closing the escrow account...");
-        **initializers_main_account.try_borrow_mut_lamports()? = initializers_main_account
-            .lamports()
-            .checked_add(escrow_account.lamports())
-            .ok_or(EscrowError::AmountOverflow)?;
-        **escrow_account.try_borrow_mut_lamports()? = 0;
-        *escrow_account.try_borrow_mut_data()? = &mut [];
+        // create pdaREFself
+        invoke_signed(
+        &system_instruction::create_account(
+            &operator.key,
+            &pdaREF.key,
+            rentREF,
+            sizeREF.into(),
+            program_id
+        ),
+        &[
+            operator.clone(),
+            pdaREF.clone()
+        ],
+        &[&[&operator.key.as_ref(), &[bumpREF]]]
+        )?;
+
+        // initiate MAIN account data
+
+        let mut MAINinfo = MAIN::unpack_unchecked(&pdaMAIN.try_borrow_data()?)?; // don't understand try_borrow_data()..cant find
+
+        let mut FLAGS = BitVec::from_elem(16, false);
+        FLAGS.set(0, true); // MAIN account is 11
+        FLAGS.set(1, true);
+        FLAGS.set(2, true); // third bit == is initialized
+
+        MAINinfo.flags = pack_flags(FLAGS);
+        MAINinfo.operator = operator.key;
+        MAINinfo.balance = 0;
+        MAINinfo.netsum = 0;
+        MAINinfo.piececount = 0;
+
+        MAIN::pack(MAINinfo, &mut pdaMAIN.try_borrow_mut_data()?)?;
+
+
+        // initiate PIECE account data
+        
+        let operatorID = instruction_data[5..];
+
+        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?; // don't understand try_borrow_data()
+
+        let mut FLAGS = BitVec::from_elem(16, false);
+        FLAGS.set(0, true); // PIECE self account is 10
+        FLAGS.set(1, false);
+        FLAGS.set(2, true); // is initialized, true
+
+        PIECEinfo.flags = pack_flags(FLAGS);
+        PIECEinfo.operator = *operator.key;
+        PIECEinfo.balance = 0;
+        PIECEinfo.netsum = 0;
+        PIECEinfo.refcount = 0;
+        PIECEinfo.pieceslug = *operatorID;
+
+        PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
+
+        // initiate REF account data
+
+        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?; // don't understand try_borrow_data()
+
+        let mut FLAGS = BitVec::from_elem(16, false);
+        FLAGS.set(0, false); // REF self account is 01
+        FLAGS.set(1, true);
+        FLAGS.set(2, true); // is initialized, true
+
+        REFinfo.flags = pack_flags(FLAGS);
+        REFinfo.target = *operator.key;
+        REFinfo.fract = 100_000;
+        REFinfo.netsum = 0;
+        REFinfo.pieceslug = "SELF_REFERENCE";
+
+        REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
+
+
+        
+
+
+
 
         Ok(())
     }
+
+
+    pub fn pack_flags(flags: BitVec) -> u16 {
+
+        let mut flagbytes = BitVec::to_bytes(&flags);
+        let bigflag = ((flagbytes[0] as u16) << 8) | flagbytes[1] as u16;
+        return bigflag
+    }
+
+    pub fn unpack_flags(flags: u16) -> BitVec {
+
+        let highflag: u8 = (flags >> 8) as u8;
+        let lowflag: u8 = (flags & 0xff) as u8;
+        let flagbits = BitVec::from_bytes(&[highflag, lowflag]);
+        return flagbits
+    }
+}

@@ -1,8 +1,34 @@
 # LOG
 
 ```
+blairmunroakusa@0500.022722.anch.AK:goldcouch
+
+. preparing codebase for first round of testing
+. finished first process instruction
+. working on InitMAIN, processor.rs
+```
+```
+blairmunroakusa@1734.022622.anch.AK:Manhattan
+
+. working on processor.rs
+
+blairmunroakusa@0730.022622.anch.AK:goldcouch
+
+. finishing up state.rs
+```
+```
+blairmunroakusa@1919.022522.anch.AK:FT
+
+. finishing up state.rs
+
+blairmunroakusa@1115.022522.anch.AK:steamdot
+
+. maniacal coding, working on client and 
+
 blairmunroakusa@0440.022522.anch.AK:gold couch
 
+. writing out flows again
+. beginning monolithic client implementation
 . undoing git fuckupery
 ```
 ```

@@ -13,33 +13,38 @@ pub enum PayfractInstruction {
     // put documentation here
     
     // instruction to create operator main account
-    CreateOperatorMain {
+    InitMAIN {
+        
+        sizeMAIN: u8
+        bumpMAIN: u8,
+        sizePIECE: u8,
+        bumpPIECE: u8,
+        sizeREF: u8,
+        bumpREF: u8,
+        operatorID: &str,
 
-        fingerprint: Pubkey,  // 32B of encrypted pubkey
-        operator_id: String,
     }
-    
+   /* 
     // instruction to create piece main account
-    CreatePieceMain {
+    InitPIECE {
 
-        fingerprint: Pubkey,
-        piece_id: String,
+        bumpPiece: u8,
+        bumpRef: u8,
     }
     
     // instruction to create piece ref account
-    CreatePieceRef {
+    InitREF {
 
-        target: Pubkey,
-        fract: u32,     // 
-        disco: u8,      // least sig bit high == disconnected ref (disco=1)
+        bumpRef: u8,
     }
+
     // instruction to create piece ref account
     PropagateContribution {
 
         target: Pubkey,
         fract: u32,     // 
         disco: u8,      // least sig bit high == disconnected ref (disco=1)
-    }
+    }*/
 }
 
 
@@ -51,36 +56,59 @@ impl PayfractInstruction {
         let (tag, rest) = input.split_first().ok_or(InvalidInstruction)?;
 
         Ok( match tag {
-            0 => Self::CreateOperatorMain {
-                fingerprint: Self::extract_fingerprint(rest)?,
-                operator_id: Self::extract_operator_id(rest)?,
+            0 => Self::InitMAIN {
+                sizeMAIN: rest[0],
+                bumpMAIN: rest[1],
+                sizePIECE: rest[2]
+                bumpPIECE: rest[3],
+                sizeREF: rest[4],
+                bumpREF: rest[5],
+                operatorID: rest[6..],
             },
-            1 => Self::CreatePieceMain {
-                fingerprint: Self::extract_fingerprint(rest)?,
-                piece_id: Self::extract_piece_id(rest)?,
+            /*
+            1 => Self::InitPIECE {
+                bumpPiece: Self::extract_bumppiece(rest)?,
+                bumpRef: Self::extract_bumpref(rest)?,
             },
-            2 => Self::CreatePieceRef {
-                target: Self::extract_target(rest)?,
-                fract: Self::extract_fract(rest)?,
-                disco: Self::extract_disco(rest)?,
+            2 => Self::InitREF {
+                bumpRef: Self::extract_bumpref(rest)?,
             },
             3 => Self::PropagateContribution {
                 target: Self::extract_target(rest)?,
                 fract: Self::extract_fract(rest)?,
                 disco: Self::extract_disco(rest)?,
-            },
+            },*/
             _ => return Err(InvalidInstruction.into()),
         })
     }
+/*
+    fn extract_bumpmain(input: &[u8]) -> Result<u8, ProgramError> {
 
-    fn extract_fingerprint(input: &[u8]) -> Result<Pubkey, ProgramError> {
-        let fingerprint = input
-            .get(..32)
-            .and_then(|slice| slice.try_into().ok())
-            .map(pubkey::deserialize)
-            .ok_or(InvalidInstruction)?;
-        Ok(fingerprint)
+        let bump  = input.get(2).ok_or(InvalidInstruction)?;
+        Ok(bump)
     }
+    fn extract_bumppiece(input: &[u8]) -> Result<u8, ProgramError> {
+
+        let bump  = input.get(1).ok_or(InvalidInstruction)?;
+        Ok(bump)
+    }
+    fn extract_bumpref(input: &[u8]) -> Result<u8, ProgramError> {
+
+        let bump  = input.get(0).ok_or(InvalidInstruction)?;
+        Ok(bump)
+    }
+    fn extract_operatorid(input: &[u8]) -> Result<
+*/
+
+
+
+////////////////////////////////
+
+
+
+
+/*
+
 
     // TODO, figure out string type deserialization
     fn extract_operator_id(input: &[u8]) -> Result<String, ProgramError> {
@@ -128,5 +156,5 @@ impl PayfractInstruction {
             .map(u8::from_le_bytes)
             .ok_or(InvalidInstruction)?;
         Ok(disco)
-    }
+    }*/
 }
