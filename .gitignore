@@ -5,6 +5,9 @@ target
 
 # misc stuff
 example-helloworld
+node_modules
+test-ledger
+
 
 # soft local navigation links
 *\[

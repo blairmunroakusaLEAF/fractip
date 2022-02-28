@@ -129,16 +129,16 @@ const uint64 = (property = "uint64") => {
 /**
  * account struct Main
  **/
-export const MAIN_ACCOUNT_DATA_LAYOUT = BufferLayout.struct([
-	publicKey("operator"),
+export const MAIN_DATA_LAYOUT = BufferLayout.struct([
 	BufferLayout.u8("flags"),
+	publicKey("operator"),
 	uint64("balance"),
 	uint64("netsum"),
 	BufferLayout.u32("piececount"),
 ]);
 export interface MainLayout {
-	operator: Uint8Array;
 	flags: number;
+	operator: Uint8Array;
 	balance: Uint8Array;
 	netsum: Uint8Array;
 	piececount: number;
@@ -148,17 +148,17 @@ export const MAIN_SIZE
 /**
  * account struct Piece
  **/
-export const PIECE_ACCOUNT_DATA_LAYOUT = BufferLayout.struct([
-	publicKey("operator"),
+export const PIECE_DATA_LAYOUT = BufferLayout.struct([
 	BufferLayout.u8("flags"),
+	publicKey("operator"),
 	uint64("balance"),
 	uint64("netsum"),
 	BufferLayout.u32("refcount"),
 	pieceSlug("pieceslug"),
 ]);
 export interface PieceLayout {
-       	operator: Uint8Array;
 	flags: number;
+       	operator: Uint8Array;
 	balance: Uint8Array;
 	netsum: Uint8Array;
 	refcount: number;
@@ -168,16 +168,16 @@ export interface PieceLayout {
 /**
  * account struct Ref
  **/
-export const REF_ACCOUNT_DATA_LAYOUT = BufferLayout.struct([
-	publicKey("target"),
+export const REF_DATA_LAYOUT = BufferLayout.struct([
 	BufferLayout.u8("flags"),
+	publicKey("target"),
 	BufferLayout.u32("fract"),
 	uint64("netsum"),
 	refSlug("refslug"),
 ]);
 export interface RefLayout {
-       	target: Uint8Array;
 	flags: number;
+       	target: Uint8Array;
 	fract: number;
 	netsum: Uint8Array;
 	refslug: Uint8Array;

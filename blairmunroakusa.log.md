@@ -1,6 +1,13 @@
 # LOG
 
 ```
+blairmunroakusa@1035.022822.anch.AK:goldcouch
+. got payfract server code tp compile
+blairmunroakusa@0729.022822.anch.AK:goldcouch
+. got initMAIN ts to compile
+blairmunroakusa@0500.022822.anch.AK:goldcouch
+```
+```
 blairmunroakusa@0500.022722.anch.AK:goldcouch
 
 . preparing codebase for first round of testing

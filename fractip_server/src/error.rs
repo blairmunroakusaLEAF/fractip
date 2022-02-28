@@ -16,6 +16,9 @@ pub enum PayfractError {
     /// Amount Overflow
     #[error("Amount Overflow")]
     AmountOverflow,
+    /// Try From Slice
+    #[error("Try From Slice Fail")]
+    TryFromSliceError,
 }
 
 impl From<PayfractError> for ProgramError {

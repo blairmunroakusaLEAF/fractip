@@ -1,4 +1,5 @@
-import { AccountLayout, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import * as BufferLayout from "buffer-layout";
+import * as fs from "fs";
 import {
   Connection,
   Keypair,
@@ -9,16 +10,6 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import BN = require("bn.js");
-import {
-  EscrowLayout,
-  ESCROW_ACCOUNT_DATA_LAYOUT,
-  getKeypair,
-  getProgramId,
-  getPublicKey,
-  getTerms,
-  getTokenBalance,
-  writePublicKey,
-} from "./utils";
 // setup layouts and interface
 //
 
@@ -152,25 +143,25 @@ const testbed = async () => {
 	
 	// get preliminary info
 	const payfractID = getProgramID();
-	const OperatorKEY = getPublicKey("operator");
-	const OperatorID = "TESTOPERATORID";
+	const operatorKEY = getKeypair("operator");
+	var operatorID = "TESTOPERATORID";
 	const connection = new Connection("http://localhost:8899", "confirmed");
 	var PIECEno = 0;
 	var REFno = 0;
 
 	// find MAIN address
 	let [pdaMAIN, bumpMAIN] = await PublicKey.findProgramAddress(
-		[Buffer.from(OperatorID)], payfractID);
+		[Buffer.from(operatorID)], payfractID);
 	console.log(`MAIN pda ${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
 
 	// find PIECE address
 	let [pdaPIECE, bumpPIECE] = await PublicKey.findProgramAddress(
-		[Buffer.from(pdaMAIN), Buffer.from(PIECEno)], payfractID);
+		[Buffer.from(pdaMAIN.toString()), Buffer.from(PIECEno.toString())], payfractID);
 	console.log(`Self PIECE pda${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
 	
 	// find REF address
 	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
-		[Buffer.from(pdaPIECE), Buffer.from(REFno)], payfractID);
+		[Buffer.from(pdaPIECE.toString()), Buffer.from(REFno.toString())], payfractID);
 	console.log(`Self REF pda ${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
 
 	// check payfract for MAINPDA
@@ -181,30 +172,33 @@ const testbed = async () => {
 	//
 	// add some data sizes
 	// MAIN:
+
+	var ixDATA = [0, MAIN_SIZE, bumpMAIN, PIECE_SIZE, bumpPIECE, REF_SIZE, bumpREF]
+		.concat(toUTF8Array(operatorID));
+
 	let InitMAINtx = new Transaction().add(
 		new TransactionInstruction({
 			keys: [
-				{ pubkey: OperatorKEY, isSigner: true,isWritable: true, },
+				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
 				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
 				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
 				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
 				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
 				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
 			],
-			data: Buffer.from(
-				Uint8Array.of(0, MAIN_SIZE, bumpMAIN, PIECE_SIZE, bumpPIECE, REF_SIZE, bumpREF, operatorID)),
+			data: Buffer.from(new Uint8Array(ixDATA)),
+
 			programId: payfractID,
 		})
-		.add(
 
 	);
 
-	console.log(`TXhash: ${await connection.sendTransaction(InitMainTX, [OperatorID])}`);
-
-
-	createOperatorMainTX = SystemProgram.createAccount
+	console.log(`TXhash: ${await connection.sendTransaction(InitMAINtx, [operatorKEY])}`);
 
 };
+
+////////////////////////////////////////////////////////////////
+
 
 const getPrivateKey = (name: string) =>
 	Uint8Array.from(
@@ -235,3 +229,56 @@ const getProgramID = () => {
 };
 
 testbed();
+
+function fromUTF8Array(data) { // array of bytes
+    var str = '',
+        i;
+
+    for (i = 0; i < data.length; i++) {
+        var value = data[i];
+
+        if (value < 0x80) {
+            str += String.fromCharCode(value);
+        } else if (value > 0xBF && value < 0xE0) {
+            str += String.fromCharCode((value & 0x1F) << 6 | data[i + 1] & 0x3F);
+            i += 1;
+        } else if (value > 0xDF && value < 0xF0) {
+            str += String.fromCharCode((value & 0x0F) << 12 | (data[i + 1] & 0x3F) << 6 | data[i + 2] & 0x3F);
+            i += 2;
+        } else {
+            // surrogate pair
+            var charCode = ((value & 0x07) << 18 | (data[i + 1] & 0x3F) << 12 | (data[i + 2] & 0x3F) << 6 | data[i + 3] & 0x3F) - 0x010000;
+
+            str += String.fromCharCode(charCode >> 10 | 0xD800, charCode & 0x03FF | 0xDC00);
+            i += 3;
+        }
+    }
+
+    return str;
+}
+	function toUTF8Array(str) {
+    		var utf8 = [];
+    		for (var i=0; i < str.length; i++) {
+        		var charcode = str.charCodeAt(i);
+        		if (charcode < 0x80) utf8.push(charcode);
+        		else if (charcode < 0x800) {
+            			utf8.push(0xc0 | (charcode >> 6), 
+                      			  0x80 | (charcode & 0x3f));
+        		}
+        		else if (charcode < 0xd800 || charcode >= 0xe000) {
+            			utf8.push(0xe0 | (charcode >> 12), 
+                      			  0x80 | ((charcode>>6) & 0x3f), 
+                      			  0x80 | (charcode & 0x3f));
+        		}
+        		// surrogate pair
+        		else {
+            			i++;
+            			charcode = ((charcode&0x3ff)<<10)|(str.charCodeAt(i)&0x3ff)
+            			utf8.push(0xf0 | (charcode >>18), 
+                      			  0x80 | ((charcode>>12) & 0x3f), 
+                      			  0x80 | ((charcode>>6) & 0x3f), 
+                      			  0x80 | (charcode & 0x3f));
+        		}
+    		}
+    		return utf8;
+	}
