@@ -8,8 +8,15 @@ import {
   SYSVAR_RENT_PUBKEY,
   Transaction,
   TransactionInstruction,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import BN = require("bn.js");
+
+require("trace");
+//require("crypto-js");
+const Base58 = require("base-58");
+Error.stackTraceLimit = Infinity;
+
 // setup layouts and interface
 //
 
@@ -19,35 +26,35 @@ import BN = require("bn.js");
 
 /**
  * flags layout
- **/
+ **//*
 const flags = (property = "flags") => {
 	return BufferLayout.blob(2, property);
 };
 
 /**
  * public key layout
- **/
+ **//*
 const publicKey = (property = "publicKey") => {
 	return BufferLayout.blob(32, property);
 };
 
 /**
  * pieceID layout
- **/
+ **//*
 const pieceSlug = (property = "pieceSlug") => {
 	return BufferLayout.blob(68, property);
 };	// 64B String with 4B Vec tag
 
 /**
  * refSlug layout
- **/
+ **//*
 const refSlug = (property = "refSlug") => {
 	return BufferLayout.blob(20, property);
 };	// 16B String with 4B Vec tag
 
 /**
  * u64 layout
- **/
+ **//*
 const uint64 = (property = "uint64") => {
   return BufferLayout.blob(8, property);
 };
@@ -57,7 +64,7 @@ const uint64 = (property = "uint64") => {
  **/
 
 const FLAGS_SIZE = 2;
-const PUBKEY_SIZE = 64;
+const PUBKEY_SIZE = 32;
 const BALANCE_SIZE = 8;
 const NETSUM_SIZE = 8;
 const COUNT_SIZE = 4
@@ -82,7 +89,7 @@ const REF_SIZE = FLAGS_SIZE +
 		REFSLUG_SIZE;	// = 98
 /**
  * account struct MAIN
- **/
+ **//*
 
 const MAIN_DATA_LAYOUT = BufferLayout.struct([
 	BufferLayout.u8("flags"),
@@ -101,7 +108,7 @@ interface MAINlayout {
 
 /**
  * account struct PIECE
- **/
+ **//*
 const PIECE_DATA_LAYOUT = BufferLayout.struct([
 	BufferLayout.u8("flags"),
 	publicKey("operator"),
@@ -121,7 +128,7 @@ interface PIECElayout {
 
 /**
  * account struct REF
- **/
+ **//*
 const REF_DATA_LAYOUT = BufferLayout.struct([
 	BufferLayout.u8("flags"),
 	publicKey("target"),
@@ -137,31 +144,48 @@ interface REFlayout {
 	refslug: Uint8Array;
 };
 
+/**
+ * main
+ **/
 
-
-const testbed = async () => {
+const InitMAIN = async () => {
+	
+	try {
 	
 	// get preliminary info
-	const payfractID = getProgramID();
+	const fractipID = getProgramID();
 	const operatorKEY = getKeypair("operator");
 	var operatorID = "TESTOPERATORID";
 	const connection = new Connection("http://localhost:8899", "confirmed");
-	var PIECEno = 0;
-	var REFno = 0;
+	var noPIECE = new Uint16Array(1)
+	noPIECE[0] = 256;
+	var noREF = new Uint16Array(1);
+	noREF[0] = 65000;
 
 	// find MAIN address
 	let [pdaMAIN, bumpMAIN] = await PublicKey.findProgramAddress(
-		[Buffer.from(operatorID)], payfractID);
+		[Buffer.from(operatorID)], fractipID);
 	console.log(`MAIN pda ${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
+
+	// just discovered that seed is limited to 32 bytes
+	// create PIECE pda seed	
+	let noPIECElow = noPIECE[0] & 0xFF; // mask for low order count byte
+	let noPIECEhigh = (noPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
+	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(noPIECEhigh, noPIECElow);
 
 	// find PIECE address
 	let [pdaPIECE, bumpPIECE] = await PublicKey.findProgramAddress(
-		[Buffer.from(pdaMAIN.toString()), Buffer.from(PIECEno.toString())], payfractID);
+		[Buffer.from(new Uint8Array(pdaPIECEseed))], fractipID);
 	console.log(`Self PIECE pda${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
-	
+
+	// create REF pda seed
+	let noREFlow = noREF[0] & 0xFF;	// mask for low order count byte
+	let noREFhigh = (noREF[0] >> 8) & 0xFF;	// shift and mask for high order count byte
+	var pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0,30)).concat(noREFhigh, noREFlow);
+
 	// find REF address
 	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
-		[Buffer.from(pdaPIECE.toString()), Buffer.from(REFno.toString())], payfractID);
+		[Buffer.from(new Uint8Array(pdaREFseed))], fractipID);
 	console.log(`Self REF pda ${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
 
 	// check payfract for MAINPDA
@@ -178,6 +202,7 @@ const testbed = async () => {
 
 	let InitMAINtx = new Transaction().add(
 		new TransactionInstruction({
+			programId: fractipID,
 			keys: [
 				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
 				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
@@ -187,33 +212,38 @@ const testbed = async () => {
 				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
 			],
 			data: Buffer.from(new Uint8Array(ixDATA)),
-
-			programId: payfractID,
 		})
-
 	);
 
-	console.log(`TXhash: ${await connection.sendTransaction(InitMAINtx, [operatorKEY])}`);
+	await sendAndConfirmTransaction(connection, InitMAINtx, [operatorKEY]);
 
+	} catch {
+		console.log(Error);
+	}
 };
 
 ////////////////////////////////////////////////////////////////
 
-
+// takes in 64 byte array
 const getPrivateKey = (name: string) =>
 	Uint8Array.from(
 		JSON.parse(fs.readFileSync(`./keys/${name}_pri.json`) as unknown as string)
 	);
+// takes in base58 formatted string
 const getPublicKey = (name: string) =>
 	new PublicKey(
 		JSON.parse(fs.readFileSync(`./keys/${name}_pub.json`) as unknown as string)
  	);
+
 const writePublicKey = (publicKey: PublicKey, name: string) => {
 	fs.writeFileSync(
 		`./keys/${name}_pub.json`,
 		JSON.stringify(publicKey.toString())
 	);
 };
+
+// public key is 32 bytes, log printed as 64 hex characters
+// private key is 64 bytes, log printerd as 64 byte array
 const getKeypair = (name: string) =>
 	new Keypair({
 		publicKey: getPublicKey(name).toBytes(),
@@ -221,14 +251,14 @@ const getKeypair = (name: string) =>
 	});
 const getProgramID = () => {
 	try {
-		return getPublicKey("payfract");
+		return getPublicKey("fractip");
 	} catch (error) {
 		console.log("Given programId is missing or incorrect");
 	process.exit(1);
 	}
 };
 
-testbed();
+InitMAIN();
 
 function fromUTF8Array(data) { // array of bytes
     var str = '',

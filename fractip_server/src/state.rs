@@ -7,7 +7,7 @@ use solana_program::{
             Pack,
             Sealed,
         },
-};
+    };
 
 use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
 
@@ -17,7 +17,7 @@ const PUBKEY_LEN: usize = 32;
 const FLAGS_LEN: usize = 2;
 const BALANCE_LEN: usize = 8;
 const NETSUM_LEN: usize = 8;
-const COUNT_LEN: usize = 4;
+const COUNT_LEN: usize = 2;
 const FRACT_LEN: usize = 4;
 
 pub struct MAIN {
@@ -25,7 +25,7 @@ pub struct MAIN {
     pub operator: Pubkey,
     pub balance: u64,
     pub netsum: u64,
-    pub piececount: u32,
+    pub piececount: u16,
 }
 
 pub struct PIECE {
@@ -33,7 +33,7 @@ pub struct PIECE {
     pub operator: Pubkey,
     pub balance: u64,
     pub netsum: u64,
-    pub refcount: u32,
+    pub refcount: u16,
     pub pieceslug: [u8; PIECESLUG_LEN],
 }
 
@@ -64,7 +64,7 @@ impl Pack for MAIN {
             operator: Pubkey::new_from_array(*operator),
             balance: u64::from_le_bytes(*balance),
             netsum: u64::from_le_bytes(*netsum),
-            piececount: u32::from_le_bytes(*piececount),
+            piececount: u16::from_le_bytes(*piececount),
         })
     }
 
@@ -115,7 +115,7 @@ impl Pack for PIECE {
             operator: Pubkey::new_from_array(*operator),
             balance: u64::from_le_bytes(*balance),
             netsum: u64::from_le_bytes(*netsum),
-            refcount: u32::from_le_bytes(*refcount),
+            refcount: u16::from_le_bytes(*refcount),
             pieceslug: *pieceslug,
         })
     }

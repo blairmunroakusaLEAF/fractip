@@ -168,16 +168,14 @@ interface REFlayout {
 /**
 * main
 **/
-var testbed = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var fractipID, operatorKEY, operatorID, connection, noPIECE, noREF, _a, pdaMAIN, bumpMAIN, noPIECElow, noPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, noREFlow, noREFhigh, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitMAINtx, _d, _e, _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
+var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var fractipID, operatorKEY, operatorID, connection, noPIECE, noREF, _a, pdaMAIN, bumpMAIN, noPIECElow, noPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, noREFlow, noREFhigh, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitMAINtx, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _g.trys.push([0, 6, , 7]);
+                _e.trys.push([0, 5, , 6]);
                 fractipID = getProgramID();
                 operatorKEY = getKeypair("operator");
-                console.log(fractipID.toBase58());
-                console.log(operatorKEY.publicKey);
                 operatorID = "TESTOPERATORID";
                 connection = new web3_js_1.Connection("http://localhost:8899", "confirmed");
                 noPIECE = new Uint16Array(1);
@@ -186,55 +184,45 @@ var testbed = function () { return __awaiter(void 0, void 0, void 0, function ()
                 noREF[0] = 65000;
                 return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(operatorID)], fractipID)];
             case 1:
-                _a = _g.sent(), pdaMAIN = _a[0], bumpMAIN = _a[1];
+                _a = _e.sent(), pdaMAIN = _a[0], bumpMAIN = _a[1];
                 console.log("MAIN pda ".concat(pdaMAIN.toBase58(), " found after ").concat(256 - bumpMAIN, " tries"));
                 noPIECElow = noPIECE[0] & 0xFF;
                 noPIECEhigh = (noPIECE[0] >> 8) & 0xFF;
                 pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0, 30)).concat(noPIECEhigh, noPIECElow);
-                console.log(typeof pdaPIECEseed);
-                console.log(pdaPIECEseed);
-                console.log(typeof operatorID);
                 return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaPIECEseed))], fractipID)];
             case 2:
-                _b = _g.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
-                //[Buffer.from("5gQv2CuSSf5iqe9WxaDpP7r8e5jmXie7xajJYMDxj5Ae 0")], fractipID);
-                //[Buffer.from("5gQv2CuSSf5iqe9WxaDpP7r8e5jmXie7xajJYMDxj5Ae 0")], fractipID);
+                _b = _e.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
                 console.log("Self PIECE pda".concat(pdaPIECE.toBase58(), " found after ").concat(256 - bumpPIECE, " tries"));
                 noREFlow = noREF[0] & 0xFF;
                 noREFhigh = (noREF[0] >> 8) & 0xFF;
                 pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0, 30)).concat(noREFhigh, noREFlow);
-                console.log(pdaREFseed);
                 return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaREFseed))], fractipID)];
             case 3:
-                _c = _g.sent(), pdaREF = _c[0], bumpREF = _c[1];
+                _c = _e.sent(), pdaREF = _c[0], bumpREF = _c[1];
                 console.log("Self REF pda ".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
                 ixDATA = [0, MAIN_SIZE, bumpMAIN, PIECE_SIZE, bumpPIECE, REF_SIZE, bumpREF]
                     .concat(toUTF8Array(operatorID));
                 InitMAINtx = new web3_js_1.Transaction().add(new web3_js_1.TransactionInstruction({
                     programId: fractipID,
                     keys: [
-                        { pubkey: operatorKEY.publicKey, isSigner: true, isWritable: false },
+                        { pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true },
                         { pubkey: web3_js_1.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
                         { pubkey: pdaMAIN, isSigner: false, isWritable: true },
                         { pubkey: pdaPIECE, isSigner: false, isWritable: true },
                         { pubkey: pdaREF, isSigner: false, isWritable: true },
                         { pubkey: web3_js_1.SystemProgram.programId, isSigner: false, isWritable: false },
                     ],
-                    data: Buffer.alloc(0)
+                    data: Buffer.from(new Uint8Array(ixDATA))
                 }));
                 return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(connection, InitMAINtx, [operatorKEY])];
             case 4:
-                _g.sent();
-                _e = (_d = console).log;
-                return [4 /*yield*/, connection.getAccountInfo(fractipID)];
+                _e.sent();
+                return [3 /*break*/, 6];
             case 5:
-                _e.apply(_d, [_g.sent()]);
-                return [3 /*break*/, 7];
-            case 6:
-                _f = _g.sent();
+                _d = _e.sent();
                 console.log(Error);
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -267,7 +255,7 @@ var getProgramID = function () {
         process.exit(1);
     }
 };
-testbed();
+InitMAIN();
 function fromUTF8Array(data) {
     var str = '', i;
     for (i = 0; i < data.length; i++) {

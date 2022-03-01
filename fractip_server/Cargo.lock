@@ -348,6 +348,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "835a3dc7d1ec9e75e2b5fb4ba75396837112d2060b03f7d43bc1897c7f7211da"
 
 [[package]]
+name = "fractip_server"
+version = "0.1.0"
+dependencies = [
+ "arrayref",
+ "bit-vec",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -608,16 +618,6 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "winapi",
-]
-
-[[package]]
-name = "payfract_server"
-version = "0.1.0"
-dependencies = [
- "arrayref",
- "bit-vec",
- "solana-program",
- "thiserror",
 ]
 
 [[package]]
