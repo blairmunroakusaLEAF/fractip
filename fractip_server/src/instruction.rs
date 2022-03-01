@@ -1,18 +1,13 @@
 #![allow(non_snake_case)]
 
-// use external crates
 use solana_program::{
         program_error::ProgramError,
     };
 
-// use internal crates
 use crate::error::PayfractError::InvalidInstruction;
-
 
 pub enum PayfractInstruction {
 
-    // put documentation here
-    
     // instruction to create operator main account
     InitMAIN {
         
@@ -23,7 +18,6 @@ pub enum PayfractInstruction {
         sizeREF: u8,
         bumpREF: u8,
         operatorID: Vec<u8>,
-
     }
    /* 
     // instruction to create piece main account
@@ -82,35 +76,13 @@ impl PayfractInstruction {
             _ => return Err(InvalidInstruction.into()),
         })
     }
-/*
-    fn extract_bumpmain(input: &[u8]) -> Result<u8, ProgramError> {
-
-        let bump  = input.get(2).ok_or(InvalidInstruction)?;
-        Ok(bump)
-    }
-    fn extract_bumppiece(input: &[u8]) -> Result<u8, ProgramError> {
-
-        let bump  = input.get(1).ok_or(InvalidInstruction)?;
-        Ok(bump)
-    }
-    fn extract_bumpref(input: &[u8]) -> Result<u8, ProgramError> {
-
-        let bump  = input.get(0).ok_or(InvalidInstruction)?;
-        Ok(bump)
-    }
-    fn extract_operatorid(input: &[u8]) -> Result<
-*/
-
-
+}
 
 ////////////////////////////////
 
 
-
-
+    // probably garbage below
 /*
-
-
     // TODO, figure out string type deserialization
     fn extract_operator_id(input: &[u8]) -> Result<String, ProgramError> {
         let operator_id = input
@@ -158,4 +130,3 @@ impl PayfractInstruction {
             .ok_or(InvalidInstruction)?;
         Ok(disco)
     }*/
-}

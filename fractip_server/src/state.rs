@@ -1,18 +1,25 @@
 #![allow(non_snake_case)]
 
 use solana_program::{
-    program_error::ProgramError,
-    program_pack::{Pack, Sealed},
-    pubkey::Pubkey,
+        program_error::ProgramError,
+        pubkey::Pubkey,
+        program_pack::{
+            Pack,
+            Sealed,
+        },
 };
 
 use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
 
-use std::array::TryFromSliceError;
+const PIECESLUG_LEN: usize = 67;
+const REFSLUG_LEN: usize = 20;
+const PUBKEY_LEN: usize = 32;
+const FLAGS_LEN: usize = 2;
+const BALANCE_LEN: usize = 8;
+const NETSUM_LEN: usize = 8;
+const COUNT_LEN: usize = 4;
+const FRACT_LEN: usize = 4;
 
-// TODO, determine if I need the derive before each struct
-// TODO, figure out if the types should be references (unlike paulxs imp)
-// TODO, create embedded struct, AccountMeta?
 pub struct MAIN {
     pub flags: u16,
     pub operator: Pubkey,
@@ -27,7 +34,7 @@ pub struct PIECE {
     pub balance: u64,
     pub netsum: u64,
     pub refcount: u32,
-    pub pieceslug: [u8; 67],
+    pub pieceslug: [u8; PIECESLUG_LEN],
 }
 
 pub struct REF {
@@ -35,13 +42,13 @@ pub struct REF {
     pub target: Pubkey,
     pub fract: u32,
     pub netsum: u64,
-    pub refslug: [u8; 20],
+    pub refslug: [u8; REFSLUG_LEN],
 }
 
 impl Sealed for MAIN {}
 
 impl Pack for MAIN {
-    const LEN: usize = 54;
+    const LEN: usize = FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN;
     fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {
         let src = array_ref![src, 0, MAIN::LEN];
         let (
@@ -50,7 +57,7 @@ impl Pack for MAIN {
             balance,
             netsum,
             piececount,
-        ) = array_refs![src, 2, 32, 8, 8, 4];
+        ) = array_refs![src, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, COUNT_LEN];
 
         Ok( MAIN {
             flags: u16::from_le_bytes(*flags),
@@ -69,7 +76,7 @@ impl Pack for MAIN {
             balance_dst,
             netsum_dst,
             piececount_dst,
-        ) = mut_array_refs![dst, 2, 32, 8, 8, 4];
+        ) = mut_array_refs![dst, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, COUNT_LEN];
 
         let MAIN {
             flags,
@@ -79,8 +86,6 @@ impl Pack for MAIN {
             piececount,
         } = self;
 
-        // this is confusing as fuck
-        // cant I just do self.flags.to_le_bytes() for eg?
         *flags_dst = flags.to_le_bytes();
         operator_dst.copy_from_slice(operator.as_ref());
         *balance_dst = balance.to_le_bytes();
@@ -92,7 +97,8 @@ impl Pack for MAIN {
 impl Sealed for PIECE {}
 
 impl Pack for PIECE {
-    const LEN: usize = 121;
+    const LEN: usize = FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN + PIECESLUG_LEN;
+
     fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {
         let src = array_ref![src, 0, PIECE::LEN];
         let (
@@ -102,7 +108,7 @@ impl Pack for PIECE {
             netsum,
             refcount,
             pieceslug,
-        ) = array_refs![src, 2, 32, 8, 8, 4, 67];
+        ) = array_refs![src, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, COUNT_LEN, PIECESLUG_LEN];
 
         Ok( PIECE {
             flags: u16::from_le_bytes(*flags),
@@ -123,7 +129,7 @@ impl Pack for PIECE {
             netsum_dst,
             refcount_dst,
             pieceslug_dst,
-        ) = mut_array_refs![dst, 2, 32, 8, 8, 4, 67];
+        ) = mut_array_refs![dst, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, COUNT_LEN, PIECESLUG_LEN];
 
         let PIECE {
             flags,
@@ -134,23 +140,12 @@ impl Pack for PIECE {
             pieceslug,
         } = self;
 
-        // this is confusing as fuck
-        // cant I just do self.flags.to_le_bytes() for eg?
         *flags_dst = flags.to_le_bytes();
         operator_dst.copy_from_slice(operator.as_ref());
         *balance_dst = balance.to_le_bytes();
         *netsum_dst = netsum.to_le_bytes();
         *refcount_dst = refcount.to_le_bytes();
-            type VecInput = Vec<u8>;
-            type PieceslugOutput = [u8; 67];
-            let mut pieceslug_bytes: Vec<u8>;
-            pieceslug_bytes = pieceslug.to_vec();
-            let mut zeros: Vec<u8> = vec![0; 67 - pieceslug_bytes.len()];
-            fn package_slug(vector: VecInput) -> Result<PieceslugOutput, TryFromSliceError> {
-                vector.as_slice().try_into()
-            }
-            pieceslug_bytes.append(&mut zeros);
-        *pieceslug_dst = package_slug(pieceslug_bytes).unwrap();
+        *pieceslug_dst = *pieceslug;
 
     }
 }
@@ -158,7 +153,8 @@ impl Pack for PIECE {
 impl Sealed for REF {}
 
 impl Pack for REF {
-    const LEN: usize = 66;
+    const LEN: usize = FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN;
+
     fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {
         let src = array_ref![src, 0, REF::LEN];
         let (
@@ -167,7 +163,7 @@ impl Pack for REF {
             fract,
             netsum,
             refslug,
-        ) = array_refs![src, 2, 32, 4, 8, 20];
+        ) = array_refs![src, FLAGS_LEN, PUBKEY_LEN, FRACT_LEN, NETSUM_LEN, REFSLUG_LEN];
 
         Ok( REF {
             flags: u16::from_le_bytes(*flags),
@@ -186,7 +182,7 @@ impl Pack for REF {
             fract_dst,
             netsum_dst,
             refslug_dst,
-        ) = mut_array_refs![dst, 2, 32, 4, 8, 20];
+        ) = mut_array_refs![dst, FLAGS_LEN, PUBKEY_LEN, FRACT_LEN, NETSUM_LEN, REFSLUG_LEN];
 
         let REF {
             flags,
@@ -196,21 +192,10 @@ impl Pack for REF {
             refslug,
         } = self;
 
-        // this is confusing as fuck
-        // cant I just do self.flags.to_le_bytes() for eg?
         *flags_dst = flags.to_le_bytes();
         target_dst.copy_from_slice(target.as_ref());
         *fract_dst = fract.to_le_bytes();
         *netsum_dst = netsum.to_le_bytes();
-            type VecInput = Vec<u8>;
-            type RefslugOutput = [u8; 20];
-            let mut refslug_bytes: Vec<u8>;
-            refslug_bytes = refslug.to_vec();
-            let mut zeros: Vec<u8> = vec![0; 20 - refslug_bytes.len()];
-            fn package_slug(vector: VecInput) -> Result<RefslugOutput, TryFromSliceError> {
-                vector.as_slice().try_into()
-            }
-            refslug_bytes.append(&mut zeros);
-        *refslug_dst = package_slug(refslug_bytes).unwrap();
+        *refslug_dst = *refslug;
     }
 }

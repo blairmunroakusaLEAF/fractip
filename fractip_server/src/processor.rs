@@ -1,20 +1,36 @@
 #![allow(non_snake_case)]
 
 use solana_program::{
-    account_info::{next_account_info, AccountInfo},
-    entrypoint::ProgramResult,
-    msg,
-    system_instruction,
-    program::invoke_signed,
-    program_error::ProgramError,
-    program_pack::Pack,
-    pubkey::Pubkey,
-    sysvar::{rent::Rent, Sysvar},
-};
+        msg,
+        system_instruction,
+        entrypoint::ProgramResult,
+        program::invoke_signed,
+        program_error::ProgramError,
+        program_pack::Pack,
+        pubkey::Pubkey,
+        account_info::{
+            next_account_info,
+            AccountInfo
+        },
+        sysvar::{
+            rent::Rent,
+            Sysvar
+        },
+    };
 use bit_vec::BitVec;
 use std::array::TryFromSliceError;
 
-use crate::{instruction::PayfractInstruction, state::{MAIN, PIECE, REF}};
+use crate::{
+        instruction::PayfractInstruction,
+        state::{
+            MAIN,
+            PIECE,
+            REF
+        },
+    };
+
+const PIECESLUG_LEN: usize = 67;
+const REFSLUG_LEN: usize = 20;
 
 
 pub struct Processor;
@@ -52,23 +68,6 @@ impl Processor {
                     bumpREF,
                     operatorID,)
             }
-/*
-            PayfractInstruction::CreatePieceMain {
-                fingerprint,
-                piece_id,
-            } => {
-                msg!("Instruction: CreatePieceMain");
-                Self::process_create_piece_main(program_id, accounts, fingerprint, piece_id)
-            }
-
-            PayfractInstruction::CreatePieceRef {
-                target,
-                fract,
-                disco,
-            } => {
-                msg!("Processing 'CreatePieceRef' instruction...");
-                Self::process_create_piece_ref(program_id, accounts, target, fract, disco)
-            }*/
         }
     }
 
@@ -166,7 +165,7 @@ impl Processor {
 
         // initialize MAIN account data
 
-        let mut MAINinfo = MAIN::unpack_unchecked(&pdaMAIN.try_borrow_data()?)?; // don't understand try_borrow_data()..cant find
+        let mut MAINinfo = MAIN::unpack_unchecked(&pdaMAIN.try_borrow_data()?)?;
 
         let mut FLAGS = BitVec::from_elem(16, false);
         FLAGS.set(0, true); // MAIN account is 11
@@ -184,7 +183,7 @@ impl Processor {
 
         // initialize PIECE account data
         
-        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?; // don't understand try_borrow_data()
+        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
 
         let mut FLAGS = BitVec::from_elem(16, false);
         FLAGS.set(0, true); // PIECE self account is 10
@@ -198,23 +197,23 @@ impl Processor {
         PIECEinfo.refcount = 0;
         { 
             type VecInput = Vec<u8>;
-            type PieceslugOutput = [u8; 67];
-            let mut pieceslug_bytes: Vec<u8>;
-            pieceslug_bytes = operatorID.to_vec();
-            let mut zeros: Vec<u8> = vec![0; 67 - pieceslug_bytes.len()];
+            type PieceslugOutput = [u8; PIECESLUG_LEN];
             fn package_slug(vector: VecInput) -> Result<PieceslugOutput, TryFromSliceError> {
                 vector.as_slice().try_into()
             }
+            let mut pieceslug_bytes: Vec<u8>;
+            pieceslug_bytes = operatorID.to_vec();
+            let mut zeros: Vec<u8> = vec![0; PIECESLUG_LEN - pieceslug_bytes.len()];
             pieceslug_bytes.append(&mut zeros);
-        PIECEinfo.pieceslug = package_slug(pieceslug_bytes).unwrap();
+            PIECEinfo.pieceslug = package_slug(pieceslug_bytes).unwrap();
         }
 
-                PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
+        PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
 
 
         // initialize REF account data
 
-        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?; // don't understand try_borrow_data()
+        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
 
         let mut FLAGS = BitVec::from_elem(16, false);
         FLAGS.set(0, false); // REF self account is 01
@@ -225,21 +224,18 @@ impl Processor {
         REFinfo.target = *operator.key;
         REFinfo.fract = 100_000;
         REFinfo.netsum = 0;
-        
         {
             let slug = "SELF_REFERENCE";
             type VecInput = Vec<u8>;
-            type RefslugOutput = [u8; 20];
+            type RefslugOutput = [u8; REFSLUG_LEN];
             let mut refslug_bytes: Vec<u8>;
-            refslug_bytes = slug.as_bytes().to_vec();
-            let mut zeros: Vec<u8> = vec![0; 20 - refslug_bytes.len()];
             fn package_slug(vector: VecInput) -> Result<RefslugOutput, TryFromSliceError> {
                 vector.as_slice().try_into()
             }
+            refslug_bytes = slug.as_bytes().to_vec();
+            let mut zeros: Vec<u8> = vec![0; REFSLUG_LEN - refslug_bytes.len()];
             refslug_bytes.append(&mut zeros);
-
-        REFinfo.refslug = package_slug(refslug_bytes).unwrap();
-
+            REFinfo.refslug = package_slug(refslug_bytes).unwrap();
         }
 
         REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
