@@ -1,6 +1,8 @@
 # LOG
 
 ```
+blairmunroakusa@1725.022822.anch.AK:redcouch
+. cleaned up server rs code
 blairmunroakusa@1035.022822.anch.AK:goldcouch
 . got payfract server code tp compile
 blairmunroakusa@0729.022822.anch.AK:goldcouch
