@@ -4,13 +4,15 @@
 #### [BRANCH](https://github.com/blairmunroakusaBRANCH)
 #### [LEAF](https://github.com/blairmunroakusaLEAF)
 
-So far this project is in design phase and is a mess of documents strewn about this repository.
+So far this project is in initialization testing phase.
 
-Edit: Most of the chaos is in the DUMP.
+Most of the chaos is in the DUMP.
 
 ABOUT 'FRACTIP':
 
 I actually think 'fracpay' is a more fitting name; the big idea is to create a distributed application that can propagate fractal payments.
+
+(I have chosen to use the Solana blockchain due to its relatively high tx processing rate, and low tx fees. Because blockchain tx rate is in general scale-limited to be proportional to the network's throughput (?~80% confidence in assertion), a distributed ledger technology that is based in directed acyclic graph technology is probably necessary for scaling en masse (DAG network tx rates are proportional to number of network nodes/agents, not network throughput.) )
 
 Imagine, I have a blog post outlining this project as a reference implementation for fellow Solana developers writing their own dApp. In a general sense, I think money is cool, and that the world is a better place when more people get paid for their efforts. I want to share my gratitude with the people who influenced the course of this fracpay project, and naturally I cite these sources as reference. Then naturally, I set up a 'tip jar' at my blog post, using the fracpay system.
 
