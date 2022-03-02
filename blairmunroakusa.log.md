@@ -1,5 +1,11 @@
 # LOG
 
+```
+. troubleshooting client
+blairmunroakusa@0542.030222.anch.AK:goldcouch
+```
+```
+. troubleshooting client
 . deploying fractip server side
 . reformattel log
 blairmunroakusa@0520.030122.anch.AK:goldcouch
