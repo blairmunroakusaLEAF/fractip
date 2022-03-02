@@ -11,11 +11,8 @@ pub enum PayfractInstruction {
     // instruction to create operator main account
     InitMAIN {
         
-        sizeMAIN: u8,
         bumpMAIN: u8,
-        sizePIECE: u8,
         bumpPIECE: u8,
-        sizeREF: u8,
         bumpREF: u8,
         operatorID: Vec<u8>,
     }
@@ -52,13 +49,10 @@ impl PayfractInstruction {
 
         Ok( match tag {
             0 => Self::InitMAIN {
-                sizeMAIN: rest[0],
-                bumpMAIN: rest[1],
-                sizePIECE: rest[2],
-                bumpPIECE: rest[3],
-                sizeREF: rest[4],
-                bumpREF: rest[5],
-                operatorID: rest[6..].to_vec(),
+                bumpMAIN: rest[0],
+                bumpPIECE: rest[1],
+                bumpREF: rest[2],
+                operatorID: rest[3..].to_vec(),
             },
             /*
             1 => Self::InitPIECE {

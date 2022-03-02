@@ -11,14 +11,17 @@ use solana_program::{
 
 use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
 
-const PIECESLUG_LEN: usize = 67;
-const REFSLUG_LEN: usize = 20;
-const PUBKEY_LEN: usize = 32;
-const FLAGS_LEN: usize = 2;
-const BALANCE_LEN: usize = 8;
-const NETSUM_LEN: usize = 8;
-const COUNT_LEN: usize = 2;
-const FRACT_LEN: usize = 4;
+pub const PIECESLUG_LEN: usize = 67;
+pub const REFSLUG_LEN: usize = 20;
+pub const PUBKEY_LEN: usize = 32;
+pub const FLAGS_LEN: usize = 2;
+pub const BALANCE_LEN: usize = 8;
+pub const NETSUM_LEN: usize = 8;
+pub const COUNT_LEN: usize = 2;
+pub const FRACT_LEN: usize = 4;
+pub const SIZE_MAIN: usize = FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN;
+pub const SIZE_PIECE: usize = FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN + PIECESLUG_LEN;
+pub const SIZE_REF: usize = FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN;
 
 pub struct MAIN {
     pub flags: u16,

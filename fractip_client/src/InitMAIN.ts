@@ -1,16 +1,19 @@
-import * as BufferLayout from "buffer-layout";
+//import * as BufferLayout from "buffer-layout";
 import * as fs from "fs";
 import {
   Connection,
   Keypair,
   PublicKey,
   SystemProgram,
+  clusterApiUrl,
   SYSVAR_RENT_PUBKEY,
+  LAMPORTS_PER_SOL,
   Transaction,
   TransactionInstruction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import BN = require("bn.js");
+import * as bs58 from "bs58";
 
 require("trace");
 //require("crypto-js");
@@ -156,7 +159,8 @@ const InitMAIN = async () => {
 	const fractipID = getProgramID();
 	const operatorKEY = getKeypair("operator");
 	var operatorID = "TESTOPERATORID";
-	const connection = new Connection("http://localhost:8899", "confirmed");
+	//const connection = new Connection("http://localhost:8899", "confirmed");
+	const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 	var noPIECE = new Uint16Array(1)
 	noPIECE[0] = 256;
 	var noREF = new Uint16Array(1);
@@ -197,28 +201,81 @@ const InitMAIN = async () => {
 	// add some data sizes
 	// MAIN:
 
-	var ixDATA = [0, MAIN_SIZE, bumpMAIN, PIECE_SIZE, bumpPIECE, REF_SIZE, bumpREF]
+	var ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
 		.concat(toUTF8Array(operatorID));
+
+	let programId: PublicKey;
+	programId = fractipID;
 
 	let InitMAINtx = new Transaction().add(
 		new TransactionInstruction({
-			programId: fractipID,
 			keys: [
 				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
 				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
 				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
 				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
 				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
-				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
+				//{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
 			],
 			data: Buffer.from(new Uint8Array(ixDATA)),
+			programId,
 		})
 	);
+	/*
+	  const feePayer = Keypair.fromSecretKey(
+    bs58.decode("588FU4PktJWfGfxtzpAAXywSNt74AvtroVzGfKkVN1LwRuvHwKGr851uH8czM5qm4iqLbs1kKoMKtMJG4ATR7Ld2")
+  );
 
+console.log(feePayer.publicKey.toBase58());
+
+  // G2FAbFQPFa5qKXCetoFZQEvF9BVvCKbvUZvodpVidnoY
+  const base = Keypair.fromSecretKey(
+    bs58.decode("4NMwxzmYj2uvHuq8xoqhY8RXg63KSVJM1DXkpbmkUY7YQWuoyQgFnnzn6yo3CMnqZasnNPNuAT2TLwQsCaKkUddp")
+  );
+
+  let basePubkey = base.publicKey;
+  let seed = "robot001";
+  let programId = SystemProgram.programId;
+
+  let derived = await PublicKey.createWithSeed(basePubkey, seed, programId);
+
+  const tx = new Transaction().add(
+    SystemProgram.createAccountWithSeed({
+      fromPubkey: operatorKEY.publicKey, // funder
+      newAccountPubkey: derived,
+      basePubkey: basePubkey,
+      seed: seed,
+      lamports: 1e8, // 0.1 SOL
+      space: 0,
+      programId: programId,
+    })
+  );
+
+  console.log(`txhash: ${await sendAndConfirmTransaction(connection, tx, [operatorKEY, base])}`);
+/*
+const tx = new Transaction().add(
+  SystemProgram.transfer({
+    fromPubkey: operatorKEY.publicKey,
+    basePubkey: operatorKEY.publicKey,
+    toPubkey: Keypair.generate().publicKey, // create a random receiver
+    lamports: 0.01 * LAMPORTS_PER_SOL,
+    seed: "seed",
+    programId: SystemProgram.programId,
+  })
+);
+
+  let basePubkey = new PublicKey("G2FAbFQPFa5qKXCetoFZQEvF9BVvCKbvUZvodpVidnoY");
+  let seed = "robot001";
+  let programId = SystemProgram.programId;
+
+  console.log(`${(await PublicKey.createWithSeed(basePubkey, seed, programId)).toBase58()}`);
+*/
+//console.log(`txhash: ${await sendAndConfirmTransaction(connection, tx, [operatorKEY, operatorKEY])}`);
 	await sendAndConfirmTransaction(connection, InitMAINtx, [operatorKEY]);
 
 	} catch {
 		console.log(Error);
+		console.log(Error.prototype.stack);
 	}
 };
 
@@ -260,7 +317,7 @@ const getProgramID = () => {
 
 InitMAIN();
 
-function fromUTF8Array(data) { // array of bytes
+function fromUTF8Array(data: Uint8Array) { // array of bytes
     var str = '',
         i;
 
@@ -286,7 +343,7 @@ function fromUTF8Array(data) { // array of bytes
 
     return str;
 }
-	function toUTF8Array(str) {
+	function toUTF8Array(str: string) {
     		var utf8 = [];
     		for (var i=0; i < str.length; i++) {
         		var charcode = str.charCodeAt(i);

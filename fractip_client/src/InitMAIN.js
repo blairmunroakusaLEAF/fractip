@@ -200,7 +200,7 @@ var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function (
             case 3:
                 _c = _e.sent(), pdaREF = _c[0], bumpREF = _c[1];
                 console.log("Self REF pda ".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
-                ixDATA = [0, MAIN_SIZE, bumpMAIN, PIECE_SIZE, bumpPIECE, REF_SIZE, bumpREF]
+                ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
                     .concat(toUTF8Array(operatorID));
                 InitMAINtx = new web3_js_1.Transaction().add(new web3_js_1.TransactionInstruction({
                     programId: fractipID,

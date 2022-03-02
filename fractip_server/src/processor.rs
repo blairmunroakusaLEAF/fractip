@@ -24,8 +24,11 @@ use crate::{
         instruction::PayfractInstruction,
         state::{
             MAIN,
+            SIZE_MAIN,
             PIECE,
-            REF
+            SIZE_PIECE,
+            REF,
+            SIZE_REF,
         },
     };
 
@@ -48,11 +51,8 @@ impl Processor {
         match instruction {
 
             PayfractInstruction::InitMAIN {
-                sizeMAIN,
                 bumpMAIN,
-                sizePIECE,
                 bumpPIECE,
-                sizeREF,
                 bumpREF,
                 operatorID,
             } => {
@@ -60,11 +60,8 @@ impl Processor {
                 Self::process_init_main(
                     program_id,
                     accounts,
-                    sizeMAIN,
                     bumpMAIN,
-                    sizePIECE,
                     bumpPIECE,
-                    sizeREF,
                     bumpREF,
                     operatorID,)
             }
@@ -74,11 +71,8 @@ impl Processor {
     fn process_init_main(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
-        sizeMAIN: u8,
         bumpMAIN: u8,
-        sizePIECE: u8,
         bumpPIECE: u8,
-        sizeREF: u8,
         bumpREF: u8,
         operatorID: Vec<u8>,
     ) -> ProgramResult {
@@ -105,13 +99,13 @@ impl Processor {
         let pdaREF = next_account_info(account_info_iter)?;
 
         // prep to create MAIN pda
-        let rentMAIN = rent.minimum_balance(sizeMAIN.into());
+        let rentMAIN = rent.minimum_balance(SIZE_MAIN.into());
         
         // prep to create self PIECE pda
-        let rentPIECE = rent.minimum_balance(sizePIECE.into());
+        let rentPIECE = rent.minimum_balance(SIZE_PIECE.into());
 
         // prep to create self REF pda
-        let rentREF = rent.minimum_balance(sizeREF.into());
+        let rentREF = rent.minimum_balance(SIZE_REF.into());
 
 
         // create pdaMAIN
@@ -120,7 +114,7 @@ impl Processor {
             &operator.key,
             &pdaMAIN.key,
             rentMAIN,
-            sizeMAIN.into(),
+            SIZE_MAIN.try_into().unwrap(),
             program_id
         ),
         &[
@@ -136,7 +130,7 @@ impl Processor {
             &operator.key,
             &pdaPIECE.key,
             rentPIECE,
-            sizePIECE.into(),
+            SIZE_PIECE.try_into().unwrap(),
             program_id
         ),
         &[
@@ -152,7 +146,7 @@ impl Processor {
             &operator.key,
             &pdaREF.key,
             rentREF,
-            sizeREF.into(),
+            SIZE_REF.try_into().unwrap(),
             program_id
         ),
         &[

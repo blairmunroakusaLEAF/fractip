@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /usr/local/bin/yarn add Base58.js
+  /usr/local/bin/node /usr/local/bin/yarn add bs-58
 
 PATH: 
   /Library/Frameworks/Python.framework/Versions/3.10/bin:/Users/blairmunroakusa/.local/share/solana/install/active_release/bin:/Users/blairmunroakusa/_ROOT/.UTILITY:/Users/blairmunroakusa/.local/share/solana/install/active_release/bin:/Users/blairmunroakusa/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/go/bin:/usr/local/share/dotnet:~/.dotnet/tools:/Library/Frameworks/Mono.framework/Versions/Current/Commands
@@ -14,7 +14,7 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/Base58.js: Not found
+  Error: https://registry.yarnpkg.com/bs-58: Not found
       at Request.params.callback [as _callback] (/usr/local/lib/node_modules/yarn/lib/cli.js:67029:18)
       at Request.self.callback (/usr/local/lib/node_modules/yarn/lib/cli.js:140883:22)
       at Request.emit (events.js:400:28)
@@ -30,9 +30,12 @@ npm manifest:
   {
     "dependencies": {
       "@solana/web3.js": "^1.35.1",
-      "buffer-layout": "^1.2.2",
+      "base-58": "^0.0.1",
       "fs": "^0.0.1-security",
       "trace": "^3.1.1"
+    },
+    "devDependencies": {
+      "buffer-layout": "^1.2.2"
     }
   }
 
@@ -161,6 +164,11 @@ Lockfile:
     dependencies:
       jsonparse "^1.2.0"
       through ">=2.2.7 <3"
+  
+  base-58@^0.0.1:
+    version "0.0.1"
+    resolved "https://registry.yarnpkg.com/base-58/-/base-58-0.0.1.tgz#85d3e70251075661933388f831d1eb8b8f6314e3"
+    integrity sha1-hdPnAlEHVmGTM4j4MdHri49jFOM=
   
   base-x@^3.0.2:
     version "3.0.9"
