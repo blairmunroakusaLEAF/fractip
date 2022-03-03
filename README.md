@@ -44,5 +44,9 @@ Some aspects of the fracpay system design are of interest:
 
 6. Each account (piece and reference, self and otherwise) keeps a net balance. In other words, each account has a little counter. By using the refrence fractions and the net balance information, we can compute how much and where money is going, a crude memory in a crule world where memory is inordinately expensive
 
+Fractal like blood vessels...
+
+![Fractal like blood vessels.](./blood.jpg)
+
 I don't know if a project quite like this exists elsewhere, and I don't really care because this is more of an exercise. The primary startup cost to get this on mainnet is program account rentexemption, which I expect to cost around 400$ all-said, my time, and some of my wp.computer domain space/netlify bandwidth. My ambition is the get a skeleton working prototype slapped together.
 
