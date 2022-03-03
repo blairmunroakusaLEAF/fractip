@@ -8,6 +8,7 @@ So far this project is in initialization testing phase.
 
 Most of the chaos is in the DUMP.
 
+![Fractal like a lightning bolt.](./lightning_bolts_needles_1024.webp)
 ABOUT 'FRACTIP':
 
 I actually think 'fracpay' is a more fitting name; the big idea is to create a distributed application that can propagate fractal payments.
