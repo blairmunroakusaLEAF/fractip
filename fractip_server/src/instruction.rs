@@ -2,6 +2,7 @@
 
 use solana_program::{
         program_error::ProgramError,
+        msg,
     };
 
 use crate::error::PayfractError::InvalidInstruction;
@@ -12,9 +13,11 @@ pub enum PayfractInstruction {
     InitMAIN {
         
         bumpMAIN: u8,
+        seedMAIN: Vec<u8>,
         bumpPIECE: u8,
+        seedPIECE: Vec<u8>,
         bumpREF: u8,
-        operatorID: Vec<u8>,
+        seedREF: Vec<u8>,
     }
    /* 
     // instruction to create piece main account
@@ -46,13 +49,16 @@ impl PayfractInstruction {
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
 
         let (tag, rest) = input.split_first().ok_or(InvalidInstruction)?;
+        msg!("{:?}", rest);
 
         Ok( match tag {
             0 => Self::InitMAIN {
                 bumpMAIN: rest[0],
+                seedMAIN: rest[67..].to_vec(),
                 bumpPIECE: rest[1],
+                seedPIECE: rest[35..67].to_vec(),
                 bumpREF: rest[2],
-                operatorID: rest[3..].to_vec(),
+                seedREF: rest[3..35].to_vec(),
             },
             /*
             1 => Self::InitPIECE {

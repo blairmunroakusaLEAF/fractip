@@ -1,5 +1,9 @@
 //import * as BufferLayout from "buffer-layout";
-import * as fs from "fs";
+//import * as fs from "fs";
+import fs from "mz/fs";
+import os from "os";
+import path from "path";
+import yaml from "yaml";
 import {
   Connection,
   Keypair,
@@ -15,10 +19,113 @@ import {
 import BN = require("bn.js");
 import * as bs58 from "bs58";
 
+import {
+	establishConnection,
+	establishPayer,
+	checkProgram,
+	getProgramID,
+	getKeypair,
+	toUTF8Array,
+} from "./utils";
+
+import {
+	fracpayID,
+	connection,
+	payer,
+} from "./utils";
+
 require("trace");
-//require("crypto-js");
 const Base58 = require("base-58");
-Error.stackTraceLimit = Infinity;
+Error.stackTraceLimit = 50;
+
+/**
+ * main
+ **/
+
+const InitMAIN = async () => {
+	
+	try {
+	
+	// get preliminary info
+	const operatorKEY = getKeypair("operator");
+	var operatorID = "EEEEEEEE";
+	var noPIECE = new Uint16Array(1)
+	noPIECE[0] = 0;
+	var noREF = new Uint16Array(1);
+	noREF[0] = 0;
+
+	// setup
+	await establishConnection();
+	await establishPayer();
+	await checkProgram();
+
+	// find MAIN address
+	let [pdaMAIN, bumpMAIN] = await PublicKey.findProgramAddress(
+		[new Uint8Array(toUTF8Array(operatorID))], fracpayID);
+	console.log(`. MAIN pda:\t\t${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
+
+	// (just discovered that seed is limited to 32 bytes)
+	// create PIECE pda seed	
+	let noPIECElow = noPIECE[0] & 0xFF; // mask for low order count byte
+	let noPIECEhigh = (noPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
+	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(noPIECEhigh, noPIECElow);
+
+	console.log(toUTF8Array(operatorID));
+	// find PIECE address
+	let [pdaPIECE, bumpPIECE] = await PublicKey.findProgramAddress(
+		[new Uint8Array(pdaPIECEseed)], fracpayID);
+	console.log(`. Self PIECE pda:\t${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
+
+	// create REF pda seed
+	let noREFlow = noREF[0] & 0xFF;	// mask for low order count byte
+	let noREFhigh = (noREF[0] >> 8) & 0xFF;	// shift and mask for high order count byte
+	var pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0,30)).concat(noREFhigh, noREFlow);
+
+	// find REF address
+	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
+		[Buffer.from(new Uint8Array(pdaREFseed))], fracpayID);
+	console.log(`. Self REF pda:\t\t${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
+
+	// check payfract for MAINPDA
+		// 1) get payfract accounts with flag bits 1 & 2 low
+		// 2) compare resulting object against MAINPDA
+	
+	// no preexisting MAINPDA, so create account
+	//
+	// add some data sizes
+	// MAIN:
+
+	var ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
+		.concat(pdaREFseed)
+		.concat(pdaPIECEseed)
+		.concat(toUTF8Array(operatorID));
+	console.log(ixDATA);
+
+	let InitMAINtx = new Transaction().add(
+		new TransactionInstruction({
+			keys: [
+				{ pubkey: payer.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
+				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
+				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
+				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
+				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
+			],
+			data: Buffer.from(new Uint8Array(ixDATA)),
+			programId: fracpayID,
+		})
+	);
+       
+console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [payer], )}`);
+
+
+	} catch {
+		console.log(Error);
+		console.log(Error.prototype.stack);
+	}
+};
+
+InitMAIN();
 
 // setup layouts and interface
 //
@@ -62,45 +169,7 @@ const uint64 = (property = "uint64") => {
   return BufferLayout.blob(8, property);
 };
 
-/**
- * sizes (because magic numbers are annoying)
- **/
-
-const FLAGS_SIZE = 2;
-const PUBKEY_SIZE = 32;
-const BALANCE_SIZE = 8;
-const NETSUM_SIZE = 8;
-const COUNT_SIZE = 4
-const PIECESLUG_SIZE = 67; 	// 63 + 4
-const REFSLUG_SIZE = 20;	// 16 + 4
-
-const MAIN_SIZE = FLAGS_SIZE +
-		PUBKEY_SIZE +
-		BALANCE_SIZE +
-		NETSUM_SIZE +
-		COUNT_SIZE;	// = 86
-const PIECE_SIZE = FLAGS_SIZE +
-		PUBKEY_SIZE +
-		BALANCE_SIZE +
-		NETSUM_SIZE +
-		COUNT_SIZE +
-		PIECESLUG_SIZE;	// = 154
-const REF_SIZE = FLAGS_SIZE +
-		PUBKEY_SIZE +
-		NETSUM_SIZE +
-		COUNT_SIZE +
-		REFSLUG_SIZE;	// = 98
-/**
- * account struct MAIN
- **//*
-
-const MAIN_DATA_LAYOUT = BufferLayout.struct([
-	BufferLayout.u8("flags"),
-	publicKey("operator"),
-	uint64("balance"),
-	uint64("netsum"),
-	BufferLayout.u32("piececount"),
-]);			
+		
 interface MAINlayout {
 	flags: number;
 	operator: Uint8Array;
@@ -147,225 +216,4 @@ interface REFlayout {
 	refslug: Uint8Array;
 };
 
-/**
- * main
- **/
 
-const InitMAIN = async () => {
-	
-	try {
-	
-	// get preliminary info
-	const fractipID = getProgramID();
-	const operatorKEY = getKeypair("operator");
-	var operatorID = "TESTOPERATORID";
-	//const connection = new Connection("http://localhost:8899", "confirmed");
-	const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-	var noPIECE = new Uint16Array(1)
-	noPIECE[0] = 256;
-	var noREF = new Uint16Array(1);
-	noREF[0] = 65000;
-
-	// find MAIN address
-	let [pdaMAIN, bumpMAIN] = await PublicKey.findProgramAddress(
-		[Buffer.from(operatorID)], fractipID);
-	console.log(`MAIN pda ${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
-
-	// just discovered that seed is limited to 32 bytes
-	// create PIECE pda seed	
-	let noPIECElow = noPIECE[0] & 0xFF; // mask for low order count byte
-	let noPIECEhigh = (noPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
-	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(noPIECEhigh, noPIECElow);
-
-	// find PIECE address
-	let [pdaPIECE, bumpPIECE] = await PublicKey.findProgramAddress(
-		[Buffer.from(new Uint8Array(pdaPIECEseed))], fractipID);
-	console.log(`Self PIECE pda${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
-
-	// create REF pda seed
-	let noREFlow = noREF[0] & 0xFF;	// mask for low order count byte
-	let noREFhigh = (noREF[0] >> 8) & 0xFF;	// shift and mask for high order count byte
-	var pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0,30)).concat(noREFhigh, noREFlow);
-
-	// find REF address
-	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
-		[Buffer.from(new Uint8Array(pdaREFseed))], fractipID);
-	console.log(`Self REF pda ${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
-
-	// check payfract for MAINPDA
-		// 1) get payfract accounts with flag bits 1 & 2 low
-		// 2) compare resulting object against MAINPDA
-	
-	// no preexisting MAINPDA, so create account
-	//
-	// add some data sizes
-	// MAIN:
-
-	var ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
-		.concat(toUTF8Array(operatorID));
-
-	let programId: PublicKey;
-	programId = fractipID;
-
-	let InitMAINtx = new Transaction().add(
-		new TransactionInstruction({
-			keys: [
-				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
-				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
-				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
-				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
-				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
-				//{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
-			],
-			data: Buffer.from(new Uint8Array(ixDATA)),
-			programId,
-		})
-	);
-	/*
-	  const feePayer = Keypair.fromSecretKey(
-    bs58.decode("588FU4PktJWfGfxtzpAAXywSNt74AvtroVzGfKkVN1LwRuvHwKGr851uH8czM5qm4iqLbs1kKoMKtMJG4ATR7Ld2")
-  );
-
-console.log(feePayer.publicKey.toBase58());
-
-  // G2FAbFQPFa5qKXCetoFZQEvF9BVvCKbvUZvodpVidnoY
-  const base = Keypair.fromSecretKey(
-    bs58.decode("4NMwxzmYj2uvHuq8xoqhY8RXg63KSVJM1DXkpbmkUY7YQWuoyQgFnnzn6yo3CMnqZasnNPNuAT2TLwQsCaKkUddp")
-  );
-
-  let basePubkey = base.publicKey;
-  let seed = "robot001";
-  let programId = SystemProgram.programId;
-
-  let derived = await PublicKey.createWithSeed(basePubkey, seed, programId);
-
-  const tx = new Transaction().add(
-    SystemProgram.createAccountWithSeed({
-      fromPubkey: operatorKEY.publicKey, // funder
-      newAccountPubkey: derived,
-      basePubkey: basePubkey,
-      seed: seed,
-      lamports: 1e8, // 0.1 SOL
-      space: 0,
-      programId: programId,
-    })
-  );
-
-  console.log(`txhash: ${await sendAndConfirmTransaction(connection, tx, [operatorKEY, base])}`);
-/*
-const tx = new Transaction().add(
-  SystemProgram.transfer({
-    fromPubkey: operatorKEY.publicKey,
-    basePubkey: operatorKEY.publicKey,
-    toPubkey: Keypair.generate().publicKey, // create a random receiver
-    lamports: 0.01 * LAMPORTS_PER_SOL,
-    seed: "seed",
-    programId: SystemProgram.programId,
-  })
-);
-
-  let basePubkey = new PublicKey("G2FAbFQPFa5qKXCetoFZQEvF9BVvCKbvUZvodpVidnoY");
-  let seed = "robot001";
-  let programId = SystemProgram.programId;
-
-  console.log(`${(await PublicKey.createWithSeed(basePubkey, seed, programId)).toBase58()}`);
-*/
-//console.log(`txhash: ${await sendAndConfirmTransaction(connection, tx, [operatorKEY, operatorKEY])}`);
-	await sendAndConfirmTransaction(connection, InitMAINtx, [operatorKEY]);
-
-	} catch {
-		console.log(Error);
-		console.log(Error.prototype.stack);
-	}
-};
-
-////////////////////////////////////////////////////////////////
-
-// takes in 64 byte array
-const getPrivateKey = (name: string) =>
-	Uint8Array.from(
-		JSON.parse(fs.readFileSync(`./keys/${name}_pri.json`) as unknown as string)
-	);
-// takes in base58 formatted string
-const getPublicKey = (name: string) =>
-	new PublicKey(
-		JSON.parse(fs.readFileSync(`./keys/${name}_pub.json`) as unknown as string)
- 	);
-
-const writePublicKey = (publicKey: PublicKey, name: string) => {
-	fs.writeFileSync(
-		`./keys/${name}_pub.json`,
-		JSON.stringify(publicKey.toString())
-	);
-};
-
-// public key is 32 bytes, log printed as 64 hex characters
-// private key is 64 bytes, log printerd as 64 byte array
-const getKeypair = (name: string) =>
-	new Keypair({
-		publicKey: getPublicKey(name).toBytes(),
-		secretKey: getPrivateKey(name),
-	});
-const getProgramID = () => {
-	try {
-		return getPublicKey("fractip");
-	} catch (error) {
-		console.log("Given programId is missing or incorrect");
-	process.exit(1);
-	}
-};
-
-InitMAIN();
-
-function fromUTF8Array(data: Uint8Array) { // array of bytes
-    var str = '',
-        i;
-
-    for (i = 0; i < data.length; i++) {
-        var value = data[i];
-
-        if (value < 0x80) {
-            str += String.fromCharCode(value);
-        } else if (value > 0xBF && value < 0xE0) {
-            str += String.fromCharCode((value & 0x1F) << 6 | data[i + 1] & 0x3F);
-            i += 1;
-        } else if (value > 0xDF && value < 0xF0) {
-            str += String.fromCharCode((value & 0x0F) << 12 | (data[i + 1] & 0x3F) << 6 | data[i + 2] & 0x3F);
-            i += 2;
-        } else {
-            // surrogate pair
-            var charCode = ((value & 0x07) << 18 | (data[i + 1] & 0x3F) << 12 | (data[i + 2] & 0x3F) << 6 | data[i + 3] & 0x3F) - 0x010000;
-
-            str += String.fromCharCode(charCode >> 10 | 0xD800, charCode & 0x03FF | 0xDC00);
-            i += 3;
-        }
-    }
-
-    return str;
-}
-	function toUTF8Array(str: string) {
-    		var utf8 = [];
-    		for (var i=0; i < str.length; i++) {
-        		var charcode = str.charCodeAt(i);
-        		if (charcode < 0x80) utf8.push(charcode);
-        		else if (charcode < 0x800) {
-            			utf8.push(0xc0 | (charcode >> 6), 
-                      			  0x80 | (charcode & 0x3f));
-        		}
-        		else if (charcode < 0xd800 || charcode >= 0xe000) {
-            			utf8.push(0xe0 | (charcode >> 12), 
-                      			  0x80 | ((charcode>>6) & 0x3f), 
-                      			  0x80 | (charcode & 0x3f));
-        		}
-        		// surrogate pair
-        		else {
-            			i++;
-            			charcode = ((charcode&0x3ff)<<10)|(str.charCodeAt(i)&0x3ff)
-            			utf8.push(0xf0 | (charcode >>18), 
-                      			  0x80 | ((charcode>>12) & 0x3f), 
-                      			  0x80 | ((charcode>>6) & 0x3f), 
-                      			  0x80 | (charcode & 0x3f));
-        		}
-    		}
-    		return utf8;
-	}

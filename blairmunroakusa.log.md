@@ -1,7 +1,15 @@
 # LOG
 
 ```
+blairmunroakusa@1839.030222.anch.AK:FT
+. InitMAIN officially lives
+. troubleshooting server (not creating pdas)
+	. seeds were off
 . troubleshooting client
+	. got tx to fire
+	. successfully verified account deployment
+	. successfully established payer, (my keypair)
+	. verified connection, localhost, solana-core 1.9.5
 blairmunroakusa@0542.030222.anch.AK:goldcouch
 ```
 ```

@@ -36,7 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var fs = require("fs");
+//import * as BufferLayout from "buffer-layout";
+//import * as fs from "fs";
+var fs = require("mz/fs");
+var os = require("os");
+var path = require("path");
+var yaml = require("yaml");
 var web3_js_1 = require("@solana/web3.js");
 require("trace");
 //require("crypto-js");
@@ -168,64 +173,94 @@ interface REFlayout {
 /**
 * main
 **/
+var connection;
 var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var fractipID, operatorKEY, operatorID, connection, noPIECE, noREF, _a, pdaMAIN, bumpMAIN, noPIECElow, noPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, noREFlow, noREFhigh, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitMAINtx, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var fractipID, operatorKEY, operatorID, noPIECE, noREF, _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _e.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 2, , 3]);
                 fractipID = getProgramID();
                 operatorKEY = getKeypair("operator");
                 operatorID = "TESTOPERATORID";
-                connection = new web3_js_1.Connection("http://localhost:8899", "confirmed");
                 noPIECE = new Uint16Array(1);
                 noPIECE[0] = 256;
                 noREF = new Uint16Array(1);
                 noREF[0] = 65000;
-                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(operatorID)], fractipID)];
+                /**
+             * Establish a connection to the cluster
+             */
+                return [4 /*yield*/, establishConnection()];
             case 1:
-                _a = _e.sent(), pdaMAIN = _a[0], bumpMAIN = _a[1];
-                console.log("MAIN pda ".concat(pdaMAIN.toBase58(), " found after ").concat(256 - bumpMAIN, " tries"));
-                noPIECElow = noPIECE[0] & 0xFF;
-                noPIECEhigh = (noPIECE[0] >> 8) & 0xFF;
-                pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0, 30)).concat(noPIECEhigh, noPIECElow);
-                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaPIECEseed))], fractipID)];
+                /**
+             * Establish a connection to the cluster
+             */
+                _b.sent();
+                return [3 /*break*/, 3];
             case 2:
-                _b = _e.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
-                console.log("Self PIECE pda".concat(pdaPIECE.toBase58(), " found after ").concat(256 - bumpPIECE, " tries"));
-                noREFlow = noREF[0] & 0xFF;
-                noREFhigh = (noREF[0] >> 8) & 0xFF;
-                pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0, 30)).concat(noREFhigh, noREFlow);
-                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaREFseed))], fractipID)];
-            case 3:
-                _c = _e.sent(), pdaREF = _c[0], bumpREF = _c[1];
-                console.log("Self REF pda ".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
-                ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
-                    .concat(toUTF8Array(operatorID));
-                InitMAINtx = new web3_js_1.Transaction().add(new web3_js_1.TransactionInstruction({
-                    programId: fractipID,
-                    keys: [
-                        { pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true },
-                        { pubkey: web3_js_1.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
-                        { pubkey: pdaMAIN, isSigner: false, isWritable: true },
-                        { pubkey: pdaPIECE, isSigner: false, isWritable: true },
-                        { pubkey: pdaREF, isSigner: false, isWritable: true },
-                        { pubkey: web3_js_1.SystemProgram.programId, isSigner: false, isWritable: false },
-                    ],
-                    data: Buffer.from(new Uint8Array(ixDATA))
-                }));
-                return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(connection, InitMAINtx, [operatorKEY])];
-            case 4:
-                _e.sent();
-                return [3 /*break*/, 6];
-            case 5:
-                _d = _e.sent();
+                _a = _b.sent();
                 console.log(Error);
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                console.log(Error.prototype.stack);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
+function establishConnection() {
+    return __awaiter(this, void 0, void 0, function () {
+        var rpcUrl, version;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRpcUrl()];
+                case 1:
+                    rpcUrl = _a.sent();
+                    connection = new web3_js_1.Connection(rpcUrl, 'confirmed');
+                    return [4 /*yield*/, connection.getVersion()];
+                case 2:
+                    version = _a.sent();
+                    console.log('Connection to cluster established:', rpcUrl, version);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function getRpcUrl() {
+    return __awaiter(this, void 0, void 0, function () {
+        var config, err_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, getConfig()];
+                case 1:
+                    config = _a.sent();
+                    if (!config.json_rpc_url)
+                        throw new Error('Missing RPC URL');
+                    return [2 /*return*/, config.json_rpc_url];
+                case 2:
+                    err_1 = _a.sent();
+                    console.warn('Failed to read RPC url from CLI config file, falling back to localhost');
+                    return [2 /*return*/, 'http://localhost:8899'];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+function getConfig() {
+    return __awaiter(this, void 0, void 0, function () {
+        var CONFIG_FILE_PATH, configYml;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    CONFIG_FILE_PATH = path.resolve(os.homedir(), '.config', 'solana', 'cli', 'config.yml');
+                    return [4 /*yield*/, fs.readFile(CONFIG_FILE_PATH, { encoding: 'utf8' })];
+                case 1:
+                    configYml = _a.sent();
+                    return [2 /*return*/, yaml.parse(configYml)];
+            }
+        });
+    });
+}
 ////////////////////////////////////////////////////////////////
 // takes in 64 byte array
 var getPrivateKey = function (name) {

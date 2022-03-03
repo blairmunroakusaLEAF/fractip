@@ -5,6 +5,7 @@ use solana_program::{
         system_instruction,
         entrypoint::ProgramResult,
         program::invoke_signed,
+        program::invoke_signed_unchecked,
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
@@ -52,18 +53,23 @@ impl Processor {
 
             PayfractInstruction::InitMAIN {
                 bumpMAIN,
+                seedMAIN,
                 bumpPIECE,
+                seedPIECE,
                 bumpREF,
-                operatorID,
+                seedREF,
             } => {
                 msg!("Instruction: InitMAIN");
                 Self::process_init_main(
                     program_id,
                     accounts,
                     bumpMAIN,
+                    seedMAIN,
                     bumpPIECE,
+                    seedPIECE,
                     bumpREF,
-                    operatorID,)
+                    seedREF,
+                )
             }
         }
     }
@@ -72,9 +78,11 @@ impl Processor {
         program_id: &Pubkey,
         accounts: &[AccountInfo],
         bumpMAIN: u8,
+        seedMAIN: Vec<u8>,
         bumpPIECE: u8,
+        seedPIECE: Vec<u8>,
         bumpREF: u8,
-        operatorID: Vec<u8>,
+        seedREF: Vec<u8>,
     ) -> ProgramResult {
 
         let account_info_iter = &mut accounts.iter();
@@ -107,22 +115,23 @@ impl Processor {
         // prep to create self REF pda
         let rentREF = rent.minimum_balance(SIZE_REF.into());
 
-
+       
         // create pdaMAIN
-        invoke_signed(
+        invoke_signed_unchecked(
         &system_instruction::create_account(
             &operator.key,
             &pdaMAIN.key,
             rentMAIN,
-            SIZE_MAIN.try_into().unwrap(),
-            program_id
+            SIZE_MAIN.into(),
+            &program_id
         ),
         &[
             operator.clone(),
             pdaMAIN.clone()
         ],
-        &[&[&operator.key.as_ref(), &[bumpMAIN]]]
+        &[&[&seedMAIN, &[bumpMAIN]]]
         )?;
+        msg!("Successfully created pdaMAIN");
 
         // create pdaPIECEself
         invoke_signed(
@@ -130,15 +139,17 @@ impl Processor {
             &operator.key,
             &pdaPIECE.key,
             rentPIECE,
-            SIZE_PIECE.try_into().unwrap(),
-            program_id
+            SIZE_PIECE.into(),
+            &program_id
         ),
         &[
             operator.clone(),
             pdaPIECE.clone()
         ],
-        &[&[&operator.key.as_ref(), &[bumpPIECE]]]
+        &[&[&seedPIECE, &[bumpPIECE]]]
         )?;
+        msg!("Successfully created pdaPIECE");
+
 
         // create pdaREFself
         invoke_signed(
@@ -146,15 +157,16 @@ impl Processor {
             &operator.key,
             &pdaREF.key,
             rentREF,
-            SIZE_REF.try_into().unwrap(),
+            SIZE_REF.into(),
             program_id
         ),
         &[
             operator.clone(),
             pdaREF.clone()
         ],
-        &[&[&operator.key.as_ref(), &[bumpREF]]]
+        &[&[&seedREF, &[bumpREF]]]
         )?;
+        msg!("Successfully created pdaREF");
 
 
         // initialize MAIN account data
@@ -196,7 +208,7 @@ impl Processor {
                 vector.as_slice().try_into()
             }
             let mut pieceslug_bytes: Vec<u8>;
-            pieceslug_bytes = operatorID.to_vec();
+            pieceslug_bytes = seedMAIN.to_vec();
             let mut zeros: Vec<u8> = vec![0; PIECESLUG_LEN - pieceslug_bytes.len()];
             pieceslug_bytes.append(&mut zeros);
             PIECEinfo.pieceslug = package_slug(pieceslug_bytes).unwrap();

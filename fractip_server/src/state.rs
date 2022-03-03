@@ -19,9 +19,9 @@ pub const BALANCE_LEN: usize = 8;
 pub const NETSUM_LEN: usize = 8;
 pub const COUNT_LEN: usize = 2;
 pub const FRACT_LEN: usize = 4;
-pub const SIZE_MAIN: usize = FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN;
-pub const SIZE_PIECE: usize = FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN + PIECESLUG_LEN;
-pub const SIZE_REF: usize = FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN;
+pub const SIZE_MAIN: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN) as u8;
+pub const SIZE_PIECE: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN + PIECESLUG_LEN) as u8;
+pub const SIZE_REF: u8 = (FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN) as u8;
 
 pub struct MAIN {
     pub flags: u16,

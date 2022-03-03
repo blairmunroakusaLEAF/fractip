@@ -122,7 +122,7 @@ export async function establishPayer(): Promise<void> {
   }
 
   console.log(
-    'Using account',
+    'Using operator account:',
     payer.publicKey.toBase58(),
     'containing',
     lamports / LAMPORTS_PER_SOL,
