@@ -12,9 +12,9 @@ _Fractal like a lightning bolt..._
 
 ![Fractal like a lightning bolt.](./pics/lightning.webp)
 
-##### ABOUT 'FRACTIP':
+##### ABOUT FRACPAY:
 
-I actually think 'fracpay' is a more fitting name; the big idea is to create a distributed application that can propagate fractal payments.
+I actually think 'fracpay' is the fitting name; the big idea is to create a distributed application that can propagate fractal payments.
 
 (I have chosen to use the Solana blockchain due to its relatively high tx processing rate, and low tx fees. Because blockchain tx rate is in general scale-limited to be proportional to the network's throughput (?~80% confidence in assertion), a distributed ledger technology that is based in directed acyclic graph technology is probably necessary for scaling en masse (DAG network tx rates are proportional to number of network nodes/agents, not network throughput.) )
 
