@@ -4,14 +4,15 @@
 #### [BRANCH](https://github.com/blairmunroakusaBRANCH)
 #### [LEAF](https://github.com/blairmunroakusaLEAF)
 
-So far this project is in initialization testing phase.
+So far this project is in coding and testing phase.
 
 Most of the chaos is in the DUMP.
 
-Fractal like a lightning bolt...
+_Fractal like a lightning bolt..._
 
 ![Fractal like a lightning bolt.](./lightning_bolts_needles_1024.webp)
-ABOUT 'FRACTIP':
+
+##### ABOUT 'FRACTIP':
 
 I actually think 'fracpay' is a more fitting name; the big idea is to create a distributed application that can propagate fractal payments.
 
@@ -27,10 +28,11 @@ If any of the cited references are in the fracpay system and have references of 
 
 I think fracpay is a better name, because a network/system like this could be most useful at the oragizational level. How do we distribute income to project collaborators, then those collaborators number in the thousands? Etc. (I could ramble a lot in this direction, but I will save it for another piece.)
 
-Fractal like a river (but reversed)...
+_Fractal like a river (but reversed)..._
 
 ![Fractal like a river (but reversed).](./burma_s.jpg)
-Some aspects of the fracpay system design are of interest:
+
+#### Some aspects of the fracpay system design are of interest:
 
 1. References can be reserved. If I cite a bunch of references for my fracpay piece, they don't need to be in the system for me to start diverting fractions of incoming payments to them. Their reference will have an account that accumulates SOL, and a public key stored. The private key is an invitation. If I think the reference is worthy enough, I will be motivated to track down the person I am citing, and give them their invitation private key. If they wanted to collect the SOL waiting for them, they would create their own account and piece (cited piece), then link that piece to their reference account (by proffering the invitation key) which will divert all past and future SOL to their piece. If I can't find a person, then their reference account will just accumulate SOL, and the hope would be that said person eventually finds their reference account and approaches me for their invite key.
 
@@ -44,7 +46,7 @@ Some aspects of the fracpay system design are of interest:
 
 6. Each account (piece and reference, self and otherwise) keeps a net balance. In other words, each account has a little counter. By using the refrence fractions and the net balance information, we can compute how much and where money is going, a crude memory in a crule world where memory is inordinately expensive
 
-Fractal like blood vessels...
+_Fractal like blood vessels..._
 
 ![Fractal like blood vessels.](./blood.jpg)
 
