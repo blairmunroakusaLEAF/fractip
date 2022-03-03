@@ -10,7 +10,7 @@ Most of the chaos is in the DUMP.
 
 _Fractal like a lightning bolt..._
 
-![Fractal like a lightning bolt.](./lightning_bolts_needles_1024.webp)
+![Fractal like a lightning bolt.](./pics/lightning.webp)
 
 ##### ABOUT 'FRACTIP':
 
@@ -30,7 +30,7 @@ I think fracpay is a better name, because a network/system like this could be mo
 
 _Fractal like a river (but reversed)..._
 
-![Fractal like a river (but reversed).](./burma_s.jpg)
+![Fractal like a river (but reversed).](./pics/tributary.jpg)
 
 #### Some aspects of the fracpay system design are of interest:
 
@@ -48,7 +48,7 @@ _Fractal like a river (but reversed)..._
 
 _Fractal like blood vessels..._
 
-![Fractal like blood vessels.](./blood.jpg)
+![Fractal like blood vessels.](./pics/blood.jpg)
 
 I don't know if a project quite like this exists elsewhere, and I don't really care because this is more of an exercise. The primary startup cost to get this on mainnet is program account rentexemption, which I expect to cost around 400$ all-said, my time, and some of my wp.computer domain space/netlify bandwidth. My ambition is the get a skeleton working prototype slapped together.
 
