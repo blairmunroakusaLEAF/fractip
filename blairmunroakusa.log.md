@@ -1,6 +1,7 @@
 # LOG
 
 
+. added account check to InitMAIN
 . cleaning up client side
 x creating client function to gather account data and print
 	> need to clean things up first

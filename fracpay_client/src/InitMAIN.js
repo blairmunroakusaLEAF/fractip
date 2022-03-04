@@ -53,11 +53,11 @@ Error.stackTraceLimit = Infinity;
  * main								*
  ****************************************************************/
 var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var operatorKEY, operatorID, countPIECE, countREF, _a, pdaMAIN, bumpMAIN, countPIECElow, countPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, countREFlow, countREFhigh, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitMAINtx, _d, _e, _f, _g;
+    var operatorKEY, operatorID, countPIECE, countREF, _a, pdaMAIN, bumpMAIN, countPIECElow, countPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, countREFlow, countREFhigh, pdaREFseed, _c, pdaREF, bumpREF, operatorIDcheck, ixDATA, InitMAINtx, _d, _e, _f, _g;
     return __generator(this, function (_h) {
         switch (_h.label) {
             case 0:
-                _h.trys.push([0, 8, , 9]);
+                _h.trys.push([0, 9, , 10]);
                 operatorKEY = (0, utils_1.getKeypair)("operator");
                 operatorID = "I AM AN OPERATOR ID";
                 countPIECE = new Uint16Array(1);
@@ -81,18 +81,46 @@ var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function (
                 console.log(". MAIN pda:\t\t".concat(pdaMAIN.toBase58(), " found after ").concat(256 - bumpMAIN, " tries"));
                 countPIECElow = countPIECE[0] & 0xFF;
                 countPIECEhigh = (countPIECE[0] >> 8) & 0xFF;
-                pdaPIECEseed = (0, utils_1.toUTF8Array)(pdaMAIN.toString().slice(0, 30)).concat(countPIECEhigh, countPIECElow);
+                pdaPIECEseed = (0, utils_1.toUTF8Array)(pdaMAIN
+                    .toString()
+                    .slice(0, utils_2.PUBKEY_SIZE - utils_2.FLAGS_SIZE))
+                    .concat(countPIECEhigh, countPIECElow);
                 return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([new Uint8Array(pdaPIECEseed)], utils_2.fracpayID)];
             case 5:
                 _b = _h.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
                 console.log(". Self PIECE pda:\t".concat(pdaPIECE.toBase58(), " found after ").concat(256 - bumpPIECE, " tries"));
                 countREFlow = countREF[0] & 0xFF;
                 countREFhigh = (countREF[0] >> 8) & 0xFF;
-                pdaREFseed = (0, utils_1.toUTF8Array)(pdaPIECE.toString().slice(0, 30)).concat(countREFhigh, countREFlow);
+                pdaREFseed = (0, utils_1.toUTF8Array)(pdaPIECE
+                    .toString()
+                    .slice(0, 30))
+                    .concat(countREFhigh, countREFlow);
                 return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaREFseed))], utils_2.fracpayID)];
             case 6:
                 _c = _h.sent(), pdaREF = _c[0], bumpREF = _c[1];
                 console.log(". Self REF pda:\t\t".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
+                return [4 /*yield*/, utils_2.connection.getParsedProgramAccounts(utils_2.fracpayID, {
+                        filters: [
+                            {
+                                dataSize: utils_2.PIECE_SIZE
+                            },
+                            {
+                                memcmp: {
+                                    offset: utils_2.FLAGS_SIZE +
+                                        utils_2.PUBKEY_SIZE +
+                                        utils_2.BALANCE_SIZE +
+                                        utils_2.NETSUM_SIZE +
+                                        utils_2.COUNT_SIZE,
+                                    bytes: operatorID
+                                }
+                            },
+                        ]
+                    })];
+            case 7:
+                operatorIDcheck = _h.sent();
+                if (operatorIDcheck) {
+                    console.log("! The operator ID '".concat(operatorID, "' already has an account associated with it.\n"), "Choose a different ID for your operator account.");
+                }
                 ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
                     .concat(pdaREFseed)
                     .concat(pdaPIECEseed)
@@ -114,109 +142,15 @@ var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function (
                 _e = (_d = console).log;
                 _f = "txhash: ".concat;
                 return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(utils_2.connection, InitMAINtx, [utils_2.operator])];
-            case 7:
-                _e.apply(_d, [_f.apply("txhash: ", [_h.sent()])]);
-                return [3 /*break*/, 9];
             case 8:
+                _e.apply(_d, [_f.apply("txhash: ", [_h.sent()])]);
+                return [3 /*break*/, 10];
+            case 9:
                 _g = _h.sent();
                 console.log(Error);
-                console.log(Error.prototype.stack);
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
 InitMAIN();
-// setup layouts and interface
-//
-/**
- * uint8, uint16, uint32 is already taken care of in Layout Module buffer-layout
- **/
-/**
- * flags layout
- **/ /*
-const flags = (property = "flags") => {
-   return BufferLayout.blob(2, property);
-};
-
-/**
-* public key layout
-**/ /*
-const publicKey = (property = "publicKey") => {
-   return BufferLayout.blob(32, property);
-};
-
-/**
-* pieceID layout
-**/ /*
-const pieceSlug = (property = "pieceSlug") => {
-   return BufferLayout.blob(68, property);
-};	// 64B String with 4B Vec tag
-
-/**
-* refSlug layout
-**/ /*
-const refSlug = (property = "refSlug") => {
-   return BufferLayout.blob(20, property);
-};	// 16B String with 4B Vec tag
-
-/**
-* u64 layout
-**/ /*
-const uint64 = (property = "uint64") => {
- return BufferLayout.blob(8, property);
-};
-
-const MAIN_DATA_LAYOUT = BufferLayout.struct([
-   BufferLayout.u16("flags"),
-   publicKey("operator"),
-   uint64("balance"),
-   uint64("netsum"),
-   BufferLayout.u32("piececount"),
-]);
-interface MAINlayout {
-   flags: number;
-   operator: Uint8Array;
-   balance: Uint8Array;
-   netsum: Uint8Array;
-   piececount: number;
-}
-
-/**
-* account struct PIECE
-**/ /*
-const PIECE_DATA_LAYOUT = BufferLayout.struct([
-   BufferLayout.u16("flags"),
-   publicKey("operator"),
-   uint64("balance"),
-   uint64("netsum"),
-   BufferLayout.u32("refcount"),
-   pieceSlug("pieceslug"),
-]);
-interface PIECElayout {
-   flags: number;
-       operator: Uint8Array;
-   balance: Uint8Array;
-   netsum: Uint8Array;
-   refcount: number;
-   pieceslug: Uint8Array;
-}
-
-/**
-* account struct REF
-**/ /*
-const REF_DATA_LAYOUT = BufferLayout.struct([
-   BufferLayout.u16("flags"),
-   publicKey("target"),
-   BufferLayout.u32("fract"),
-   uint64("netsum"),
-   refSlug("refslug"),
-]);
-interface REFlayout {
-   flags: number;
-       target: Uint8Array;
-   fract: number;
-   netsum: Uint8Array;
-   refslug: Uint8Array;
-};
-*/

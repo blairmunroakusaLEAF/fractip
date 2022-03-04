@@ -40,7 +40,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.REF_DATA_LAYOUT = exports.PIECE_DATA_LAYOUT = exports.MAIN_DATA_LAYOUT = exports.toUTF8Array = exports.fromUTF8Array = exports.getProgramID = exports.getKeypair = exports.establishOperator = exports.establishConnection = exports.checkProgram = exports.fracpayID = exports.operator = exports.connection = void 0;
+exports.REF_DATA_LAYOUT = exports.PIECE_DATA_LAYOUT = exports.MAIN_DATA_LAYOUT = exports.toUTF8Array = exports.fromUTF8Array = exports.getProgramID = exports.getKeypair = exports.establishOperator = exports.establishConnection = exports.checkProgram = exports.PROGRAM_KEYPAIR_PATH = exports.PROGRAM_PATH = exports.PROGRAM_KEYFILE = exports.fracpayID = exports.operator = exports.connection = exports.REF_SIZE = exports.PIECE_SIZE = exports.MAIN_SIZE = exports.REFSLUG_SIZE = exports.PIECESLUG_SIZE = exports.FRACT_SIZE = exports.COUNT_SIZE = exports.NETSUM_SIZE = exports.BALANCE_SIZE = exports.PUBKEY_SIZE = exports.FLAGS_SIZE = void 0;
 /****************************************************************
  * imports							*
  ****************************************************************/
@@ -53,33 +53,33 @@ var BufferLayout = require("buffer-layout");
 /****************************************************************
  * declare constants						*
  ****************************************************************/
-var FLAGS_SIZE = 2;
-var PUBKEY_SIZE = 32;
-var BALANCE_SIZE = 8;
-var NETSUM_SIZE = 8;
-var COUNT_SIZE = 2;
-var FRACT_SIZE = 4;
-var PIECESLUG_SIZE = 67; // 63 + 4
-var REFSLUG_SIZE = 20; // 16 + 4
-var MAIN_SIZE = FLAGS_SIZE +
-    PUBKEY_SIZE +
-    BALANCE_SIZE +
-    NETSUM_SIZE +
-    COUNT_SIZE; // = 52
-var PIECE_SIZE = FLAGS_SIZE +
-    PUBKEY_SIZE +
-    BALANCE_SIZE +
-    NETSUM_SIZE +
-    COUNT_SIZE +
-    PIECESLUG_SIZE; // = 119
-var REF_SIZE = FLAGS_SIZE +
-    PUBKEY_SIZE +
-    NETSUM_SIZE +
-    FRACT_SIZE +
-    REFSLUG_SIZE; // = 66
-var PROGRAM_KEYFILE = "fracpay_server-keypair.json";
-var PROGRAM_PATH = path.resolve("/Users/blairmunroakusa/_ROOT/___LEAF/fracpay/fracpay_server/target/deploy");
-var PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
+exports.FLAGS_SIZE = 2;
+exports.PUBKEY_SIZE = 32;
+exports.BALANCE_SIZE = 8;
+exports.NETSUM_SIZE = 8;
+exports.COUNT_SIZE = 2;
+exports.FRACT_SIZE = 4;
+exports.PIECESLUG_SIZE = 67; // 63 + 4
+exports.REFSLUG_SIZE = 20; // 16 + 4
+exports.MAIN_SIZE = exports.FLAGS_SIZE +
+    exports.PUBKEY_SIZE +
+    exports.BALANCE_SIZE +
+    exports.NETSUM_SIZE +
+    exports.COUNT_SIZE; // = 52
+exports.PIECE_SIZE = exports.FLAGS_SIZE +
+    exports.PUBKEY_SIZE +
+    exports.BALANCE_SIZE +
+    exports.NETSUM_SIZE +
+    exports.COUNT_SIZE +
+    exports.PIECESLUG_SIZE; // = 119
+exports.REF_SIZE = exports.FLAGS_SIZE +
+    exports.PUBKEY_SIZE +
+    exports.NETSUM_SIZE +
+    exports.FRACT_SIZE +
+    exports.REFSLUG_SIZE; // = 66
+exports.PROGRAM_KEYFILE = "fracpay_server-keypair.json";
+exports.PROGRAM_PATH = path.resolve("/Users/blairmunroakusa/_ROOT/___LEAF/fracpay/fracpay_server/target/deploy");
+exports.PROGRAM_KEYPAIR_PATH = path.join(exports.PROGRAM_PATH, exports.PROGRAM_KEYFILE);
 /****************************************************************
  * general functions						*
  ****************************************************************/
@@ -93,7 +93,7 @@ function checkProgram() {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, createKeypairFromFile(PROGRAM_KEYPAIR_PATH)];
+                    return [4 /*yield*/, createKeypairFromFile(exports.PROGRAM_KEYPAIR_PATH)];
                 case 1:
                     programKeypair = _a.sent();
                     exports.fracpayID = programKeypair.publicKey;
@@ -102,7 +102,7 @@ function checkProgram() {
                 case 2:
                     err_1 = _a.sent();
                     errMsg = err_1.message;
-                    throw new Error("! Failed to read program keypair at \"".concat(PROGRAM_KEYPAIR_PATH, "\" due to error: ").concat(errMsg, ".\n\n\t\t\tProgram may need to be deployed with \n\t\t\t`solana program deploy fracpay_server/target/deploy/fracpay_server.so`"));
+                    throw new Error("! Failed to read program keypair at \"".concat(exports.PROGRAM_KEYPAIR_PATH, "\" due to error: ").concat(errMsg, ".\n\n\t\t\tProgram may need to be deployed with \n\t\t\t`solana program deploy fracpay_server/target/deploy/fracpay_server.so`"));
                 case 3: return [2 /*return*/];
             }
         });
@@ -187,7 +187,7 @@ function establishOperator() {
                     feeCalculator = (_b.sent()).feeCalculator;
                     // Calculate the cost to fund the greeter account
                     _a = fees;
-                    return [4 /*yield*/, exports.connection.getMinimumBalanceForRentExemption(MAIN_SIZE + PIECE_SIZE + REF_SIZE)];
+                    return [4 /*yield*/, exports.connection.getMinimumBalanceForRentExemption(exports.MAIN_SIZE + exports.PIECE_SIZE + exports.REF_SIZE)];
                 case 2:
                     // Calculate the cost to fund the greeter account
                     fees = _a + _b.sent();
@@ -296,7 +296,7 @@ var getProgramID = function () {
 };
 exports.getProgramID = getProgramID;
 /**
- * take in a UTF8 byte array and turn it into a string
+ * take in a UTF8 array and turn it into a string
  **/
 function fromUTF8Array(data) {
     var str = "";

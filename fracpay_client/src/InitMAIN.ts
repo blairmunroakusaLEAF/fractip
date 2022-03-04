@@ -31,6 +31,8 @@ import {
 import BN = require("bn.js");
 import * as bs58 from "bs58";
 
+
+
 import {
 	establishConnection,
 	establishOperator,
@@ -44,6 +46,14 @@ import {
 	fracpayID,
 	connection,
 	operator,
+	MAIN_SIZE,
+	PIECE_SIZE,
+	FLAGS_SIZE,
+	PUBKEY_SIZE,
+	BALANCE_SIZE,
+	NETSUM_SIZE,
+	COUNT_SIZE,
+	PIECESLUG_SIZE,
 } from "./utils";
 
 require("trace");
@@ -59,7 +69,7 @@ const InitMAIN = async () => {
 	try {
 	
 	// get preliminary info
-	const operatorKEY = getKeypair("operator");
+	const operatorKEY = getKeypair("operator"); // operator ID must be less than 32 bytes
 	var operatorID = "I AM AN OPERATOR ID";
 	var countPIECE = new Uint16Array(1)
 	countPIECE[0] = 0;
@@ -77,9 +87,12 @@ const InitMAIN = async () => {
 	console.log(`. MAIN pda:\t\t${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
 
 	// create PIECE pda seed, limited to 32 bytes	
-	let countPIECElow = countPIECE[0] & 0xFF; // mask for low order count byte
-	let countPIECEhigh = (countPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
-	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(countPIECEhigh, countPIECElow);
+	let countPIECElow = countPIECE[0] & 0xFF; 		// mask for low order count byte
+	let countPIECEhigh = (countPIECE[0] >> 8) & 0xFF; 	// shift and mask for high order count byte
+	var pdaPIECEseed = toUTF8Array(pdaMAIN
+				       .toString()
+				       .slice(0,PUBKEY_SIZE - FLAGS_SIZE))
+				       .concat(countPIECEhigh, countPIECElow);
 
 	// find PIECE address
 	let [pdaPIECE, bumpPIECE] = await PublicKey.findProgramAddress(
@@ -87,31 +100,49 @@ const InitMAIN = async () => {
 	console.log(`. Self PIECE pda:\t${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
 
 	// create REF pda seed
-	let countREFlow = countREF[0] & 0xFF;	// mask for low order count byte
-	let countREFhigh = (countREF[0] >> 8) & 0xFF;	// shift and mask for high order count byte
-	var pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0,30)).concat(countREFhigh, countREFlow);
+	let countREFlow = countREF[0] & 0xFF;
+	let countREFhigh = (countREF[0] >> 8) & 0xFF;
+	var pdaREFseed = toUTF8Array(pdaPIECE
+				     .toString()
+				     .slice(0,30))
+				     .concat(countREFhigh, countREFlow);
 
 	// find REF address
 	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
 		[Buffer.from(new Uint8Array(pdaREFseed))], fracpayID);
 	console.log(`. Self REF pda:\t\t${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
 
-	// check payfract for MAINPDA
-		// 1) get payfract accounts with flag bits 1 & 2 low
-		// 2) compare resulting object against MAINPDA
+	// check payfract for pdaMAIN associated with operatorID
+	const operatorIDcheck = await connection.getParsedProgramAccounts(
+		fracpayID,
+		{
+			filters: [
+				{
+					dataSize: PIECE_SIZE,
+				},
+				{
+					memcmp: {
+						offset: PIECE_SIZE - PIECESLUG_SIZE,
+						bytes: bs58.encode(toUTF8Array(operatorID)),
+					},
+				},
+			],
+		},
+	);
+	if (operatorIDcheck) {
+		console.log(`! The operator ID '${operatorID}' already has an account associated with it.\n`,
+			    ` Choose a different ID for your operator account.`,
+		);
+		process.exit(1);
+	}
 	
-	// no preexisting MAINPDA, so create account
-	//
-	// add some data sizes
-	// MAIN:
-
+	// setup instruction data
 	var ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
 		.concat(pdaREFseed)
 		.concat(pdaPIECEseed)
 		.concat(toUTF8Array(operatorID));
-	console.log("Buffer:");
-	console.log(ixDATA);
 
+	// setup transaction
 	let InitMAINtx = new Transaction().add(
 		new TransactionInstruction({
 			keys: [
@@ -127,110 +158,15 @@ const InitMAIN = async () => {
 		})
 	);
        
-console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [operator], )}`);
-
+	// send transaction
+	console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [operator], )}`);
 
 	} catch {
-		console.log(Error);
-		console.log(Error.prototype.stack);
+
+	console.log(Error);
+
 	}
 };
 
 InitMAIN();
-
-// setup layouts and interface
-//
-
-/**
- * uint8, uint16, uint32 is already taken care of in Layout Module buffer-layout
- **/
-
-/**
- * flags layout
- **//*
-const flags = (property = "flags") => {
-	return BufferLayout.blob(2, property);
-};
-
-/**
- * public key layout
- **//*
-const publicKey = (property = "publicKey") => {
-	return BufferLayout.blob(32, property);
-};
-
-/**
- * pieceID layout
- **//*
-const pieceSlug = (property = "pieceSlug") => {
-	return BufferLayout.blob(68, property);
-};	// 64B String with 4B Vec tag
-
-/**
- * refSlug layout
- **//*
-const refSlug = (property = "refSlug") => {
-	return BufferLayout.blob(20, property);
-};	// 16B String with 4B Vec tag
-
-/**
- * u64 layout
- **//*
-const uint64 = (property = "uint64") => {
-  return BufferLayout.blob(8, property);
-};
-
-const MAIN_DATA_LAYOUT = BufferLayout.struct([
-	BufferLayout.u16("flags"),
-	publicKey("operator"),
-	uint64("balance"),
-	uint64("netsum"),
-	BufferLayout.u32("piececount"),
-]);	
-interface MAINlayout {
-	flags: number;
-	operator: Uint8Array;
-	balance: Uint8Array;
-	netsum: Uint8Array;
-	piececount: number;
-}
-
-/**
- * account struct PIECE
- **//*
-const PIECE_DATA_LAYOUT = BufferLayout.struct([
-	BufferLayout.u16("flags"),
-	publicKey("operator"),
-	uint64("balance"),
-	uint64("netsum"),
-	BufferLayout.u32("refcount"),
-	pieceSlug("pieceslug"),
-]);
-interface PIECElayout {
-	flags: number;
-       	operator: Uint8Array;
-	balance: Uint8Array;
-	netsum: Uint8Array;
-	refcount: number;
-	pieceslug: Uint8Array;
-}
-
-/**
- * account struct REF
- **//*
-const REF_DATA_LAYOUT = BufferLayout.struct([
-	BufferLayout.u16("flags"),
-	publicKey("target"),
-	BufferLayout.u32("fract"),
-	uint64("netsum"),
-	refSlug("refslug"),
-]);
-interface REFlayout {
-	flags: number;
-       	target: Uint8Array;
-	fract: number;
-	netsum: Uint8Array;
-	refslug: Uint8Array;
-};
-*/
 

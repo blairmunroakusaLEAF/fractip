@@ -29,43 +29,43 @@ import * as BigNumber from "bignumber";
  * declare constants						*
  ****************************************************************/
 
-const FLAGS_SIZE = 2;
-const PUBKEY_SIZE = 32;
-const BALANCE_SIZE = 8;
-const NETSUM_SIZE = 8;
-const COUNT_SIZE = 2;
-const FRACT_SIZE = 4;
-const PIECESLUG_SIZE = 67; 	// 63 + 4
-const REFSLUG_SIZE = 20;	// 16 + 4
+export const FLAGS_SIZE = 2;
+export const PUBKEY_SIZE = 32;
+export const BALANCE_SIZE = 8;
+export const NETSUM_SIZE = 8;
+export const COUNT_SIZE = 2;
+export const FRACT_SIZE = 4;
+export const PIECESLUG_SIZE = 67; 	// 63 + 4
+export const REFSLUG_SIZE = 20;	// 16 + 4
 
-const MAIN_SIZE = FLAGS_SIZE +
-		  PUBKEY_SIZE +
-		  BALANCE_SIZE +
-		  NETSUM_SIZE +
-		  COUNT_SIZE;		// = 52
+export const MAIN_SIZE = FLAGS_SIZE +
+			PUBKEY_SIZE +
+		  	BALANCE_SIZE +
+		  	NETSUM_SIZE +
+		  	COUNT_SIZE;		// = 52
 
-const PIECE_SIZE = FLAGS_SIZE +
-		  PUBKEY_SIZE +
-		  BALANCE_SIZE +
-		  NETSUM_SIZE +
-		  COUNT_SIZE +
-		  PIECESLUG_SIZE;	// = 119
+export const PIECE_SIZE = FLAGS_SIZE +
+		  	PUBKEY_SIZE +
+		  	BALANCE_SIZE +
+		  	NETSUM_SIZE +
+		  	COUNT_SIZE +
+		  	PIECESLUG_SIZE;		// = 119
 
-const REF_SIZE = FLAGS_SIZE +
-		  PUBKEY_SIZE +
-		  NETSUM_SIZE +
-		  FRACT_SIZE +
-		  REFSLUG_SIZE;		// = 66
+export const REF_SIZE = FLAGS_SIZE +
+		  	PUBKEY_SIZE +
+		  	NETSUM_SIZE +
+		  	FRACT_SIZE +
+		  	REFSLUG_SIZE;		// = 66
 
 export let connection: Connection;
 export let operator: Keypair;
 export let fracpayID: PublicKey;
 
-const PROGRAM_KEYFILE = "fracpay_server-keypair.json";
-const PROGRAM_PATH = path.resolve(
+export const PROGRAM_KEYFILE = "fracpay_server-keypair.json";
+export const PROGRAM_PATH = path.resolve(
 	"/Users/blairmunroakusa/_ROOT/___LEAF/fracpay/fracpay_server/target/deploy"
 );
-const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
+export const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
 
 /****************************************************************
  * general functions						*
@@ -237,7 +237,7 @@ export const getProgramID = () => {
 };
 
 /**
- * take in a UTF8 byte array and turn it into a string
+ * take in a UTF8 array and turn it into a string
  **/
 export function fromUTF8Array(data: Uint8Array) { // array of bytes
     	var str = "";
