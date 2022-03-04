@@ -2,11 +2,14 @@
   "dependencies": {
     "@solana/web3.js": "^1.35.1",
     "base-58": "^0.0.1",
+    "big-number": "^2.0.0",
+    "bignumber": "^1.1.0",
     "bs58": "^5.0.0",
     "fs": "^0.0.1-security",
     "mz": "^2.7.0",
     "os": "^0.1.2",
     "path": "^0.12.7",
+    "read": "^1.0.7",
     "trace": "^3.1.1",
     "yaml": "^1.10.2"
   },

@@ -19,9 +19,12 @@ pub const BALANCE_LEN: usize = 8;
 pub const NETSUM_LEN: usize = 8;
 pub const COUNT_LEN: usize = 2;
 pub const FRACT_LEN: usize = 4;
-pub const SIZE_MAIN: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN) as u8;
+pub const SIZE_MAIN: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN) as u8; 
+    // 52 bytes
 pub const SIZE_PIECE: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + COUNT_LEN + PIECESLUG_LEN) as u8;
+    // 119 bytes
 pub const SIZE_REF: u8 = (FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN) as u8;
+    // 66 bytes
 
 pub struct MAIN {
     pub flags: u16,
@@ -91,8 +94,8 @@ impl Pack for MAIN {
 
         *flags_dst = flags.to_le_bytes();
         operator_dst.copy_from_slice(operator.as_ref());
-        *balance_dst = balance.to_le_bytes();
-        *netsum_dst = netsum.to_le_bytes();
+        *balance_dst = balance.to_be_bytes();
+        *netsum_dst = netsum.to_be_bytes();
         *piececount_dst = piececount.to_le_bytes();
     }
 }

@@ -13,6 +13,8 @@ import os from "os";
 import fs from "mz/fs";
 import path from "path";
 import yaml from "yaml";
+import * as BufferLayout from "buffer-layout";
+import * as BigNumber from "bignumber";
 
 const FLAGS_SIZE = 2;
 const PUBKEY_SIZE = 32;
@@ -41,8 +43,8 @@ const REF_SIZE = FLAGS_SIZE +
 
 export let connection: Connection;
 export let payer: Keypair;
-const PROGRAM_PATH = path.resolve("/Users/blairmunroakusa/_ROOT/___LEAF/fractip/fractip_server/target/deploy");
-const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, "fractip_server-keypair.json");
+const PROGRAM_PATH = path.resolve("/Users/blairmunroakusa/_ROOT/___LEAF/fracpay/fracpay_server/target/deploy");
+const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, "fracpay_server-keypair.json");
 export let fracpayID: PublicKey;
 
 
@@ -108,7 +110,7 @@ export async function establishPayer(): Promise<void> {
   if (!payer) {
     const {feeCalculator} = await connection.getRecentBlockhash();
 
-    // Calculate the cost to fund the greeter account
+ // Calculate the cost to fund the greeter account
     fees += await connection.getMinimumBalanceForRentExemption(MAIN_SIZE + PIECE_SIZE + REF_SIZE);
 
     // Calculate the cost of sending transactions
@@ -247,3 +249,101 @@ export function toUTF8Array(str: string) {
     		}
     		return utf8;
 	}
+
+// setup layouts and interface
+//
+
+/**
+ * uint8, uint16, uint32 is already taken care of in Layout Module buffer-layout
+ **/
+
+/**
+ * flags layout
+ **/
+const flags = (property = "flags") => {
+	return BufferLayout.blob(2, property);
+};
+
+/**
+ * public key layout
+ **/
+const publicKey = (property = "publicKey") => {
+	return BufferLayout.blob(32, property);
+};
+
+/**
+ * pieceID layout
+ **/
+const pieceSlug = (property = "pieceSlug") => {
+	return BufferLayout.blob(67, property);
+};	// 63B String with 4B Vec tag
+
+/**
+ * refSlug layout
+ **/
+const refSlug = (property = "refSlug") => {
+	return BufferLayout.blob(20, property);
+};	// 16B String with 4B Vec tag
+
+/**
+ * u64 layout
+ **/
+const uint64 = (property = "uint64") => {
+  return BufferLayout.blob(8, property);
+};
+
+/**
+ * account struct MAIN
+ **/
+export const MAIN_DATA_LAYOUT = BufferLayout.struct([
+	BufferLayout.u16("flags"),
+	publicKey("operator"),
+	uint64("balance"),
+	uint64("netsum"),
+	BufferLayout.u16("piececount"),
+]);	
+export interface MAINlayout {
+	flags: number;
+	operator: Uint8Array;
+	balance: Buffer;
+	netsum: Buffer;
+	piececount: number;
+}
+
+/**
+ * account struct PIECE
+ **/
+export const PIECE_DATA_LAYOUT = BufferLayout.struct([
+	BufferLayout.u16("flags"),
+	publicKey("operator"),
+	uint64("balance"),
+	uint64("netsum"),
+	BufferLayout.u16("refcount"),
+	pieceSlug("pieceslug"),
+]);
+export interface PIECElayout {
+	flags: number;
+       	operator: Uint8Array;
+	balance: Buffer;
+	netsum: Buffer;
+	refcount: number;
+	pieceslug: Uint8Array;
+}
+
+/**
+ * account struct REF
+ **/
+export const REF_DATA_LAYOUT = BufferLayout.struct([
+	BufferLayout.u8("flags"),
+	publicKey("target"),
+	BufferLayout.u32("fract"),
+	uint64("netsum"),
+	refSlug("refslug"),
+]);
+export interface REFlayout {
+	flags: number;
+       	target: Uint8Array;
+	fract: number;
+	netsum: Buffer;
+	refslug: Uint8Array;
+}

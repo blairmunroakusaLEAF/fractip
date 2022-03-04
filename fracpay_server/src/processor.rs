@@ -180,9 +180,9 @@ impl Processor {
 
         MAINinfo.flags = pack_flags(FLAGS);
         MAINinfo.operator = *operator.key;
-        MAINinfo.balance = 0;
-        MAINinfo.netsum = 0;
-        MAINinfo.piececount = 0;
+        MAINinfo.balance = 1234;
+        MAINinfo.netsum = 5678;
+        MAINinfo.piececount = 13;
 
         MAIN::pack(MAINinfo, &mut pdaMAIN.try_borrow_mut_data()?)?;
 

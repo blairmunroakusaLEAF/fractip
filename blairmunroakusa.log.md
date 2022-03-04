@@ -1,6 +1,24 @@
 # LOG
 
 ```
+blairmunroakusa@1926.030322.anch.AK:FT
+. updated github
+. set PIECE struct for get account info
+. adjusting codebase to match decode scheme on client side
+blairmunroakusa@1756.030322.anch.AK:FT
+. finished decode scheme for client side
+blairmunroakusa@1630.030322.anch.AK:FT
+~ flattop hike and session
+blairmunroakusa@1251.030322.anch.AK:redcouch
+. creating decode scheme on client side
+. creating InitPIECE
+	. checking decode on client side
+blairmunroakusa@0857.030322.anch.AK:goldcouch
+. created account data layout key
+. verified that fracpay loaded correct initial info in pdas
+blairmunroakusa@0720.030322.anch.AK:goldcouch
+```
+```
 blairmunroakusa@1839.030222.anch.AK:FT
 . InitMAIN officially lives
 . troubleshooting server (not creating pdas)

@@ -1,4 +1,4 @@
-//import * as BufferLayout from "buffer-layout";
+import * as BufferLayout from "buffer-layout";
 //import * as fs from "fs";
 import fs from "mz/fs";
 import os from "os";
@@ -36,7 +36,7 @@ import {
 
 require("trace");
 const Base58 = require("base-58");
-Error.stackTraceLimit = 50;
+Error.stackTraceLimit = Infinity;
 
 /**
  * main
@@ -48,11 +48,11 @@ const InitMAIN = async () => {
 	
 	// get preliminary info
 	const operatorKEY = getKeypair("operator");
-	var operatorID = "EEEEEEEE";
-	var noPIECE = new Uint16Array(1)
-	noPIECE[0] = 0;
-	var noREF = new Uint16Array(1);
-	noREF[0] = 0;
+	var operatorID = "I AM AN OPERATOR ID";
+	var countPIECE = new Uint16Array(1)
+	countPIECE[0] = 0;
+	var countREF = new Uint16Array(1);
+	countREF[0] = 0;
 
 	// setup
 	await establishConnection();
@@ -66,20 +66,19 @@ const InitMAIN = async () => {
 
 	// (just discovered that seed is limited to 32 bytes)
 	// create PIECE pda seed	
-	let noPIECElow = noPIECE[0] & 0xFF; // mask for low order count byte
-	let noPIECEhigh = (noPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
-	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(noPIECEhigh, noPIECElow);
+	let countPIECElow = countPIECE[0] & 0xFF; // mask for low order count byte
+	let countPIECEhigh = (countPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
+	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(countPIECEhigh, countPIECElow);
 
-	console.log(toUTF8Array(operatorID));
 	// find PIECE address
 	let [pdaPIECE, bumpPIECE] = await PublicKey.findProgramAddress(
 		[new Uint8Array(pdaPIECEseed)], fracpayID);
 	console.log(`. Self PIECE pda:\t${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
 
 	// create REF pda seed
-	let noREFlow = noREF[0] & 0xFF;	// mask for low order count byte
-	let noREFhigh = (noREF[0] >> 8) & 0xFF;	// shift and mask for high order count byte
-	var pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0,30)).concat(noREFhigh, noREFlow);
+	let countREFlow = countREF[0] & 0xFF;	// mask for low order count byte
+	let countREFhigh = (countREF[0] >> 8) & 0xFF;	// shift and mask for high order count byte
+	var pdaREFseed = toUTF8Array(pdaPIECE.toString().slice(0,30)).concat(countREFhigh, countREFlow);
 
 	// find REF address
 	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
@@ -99,6 +98,7 @@ const InitMAIN = async () => {
 		.concat(pdaREFseed)
 		.concat(pdaPIECEseed)
 		.concat(toUTF8Array(operatorID));
+	console.log("Buffer:");
 	console.log(ixDATA);
 
 	let InitMAINtx = new Transaction().add(
@@ -169,7 +169,13 @@ const uint64 = (property = "uint64") => {
   return BufferLayout.blob(8, property);
 };
 
-		
+const MAIN_DATA_LAYOUT = BufferLayout.struct([
+	BufferLayout.u16("flags"),
+	publicKey("operator"),
+	uint64("balance"),
+	uint64("netsum"),
+	BufferLayout.u32("piececount"),
+]);	
 interface MAINlayout {
 	flags: number;
 	operator: Uint8Array;
@@ -182,7 +188,7 @@ interface MAINlayout {
  * account struct PIECE
  **//*
 const PIECE_DATA_LAYOUT = BufferLayout.struct([
-	BufferLayout.u8("flags"),
+	BufferLayout.u16("flags"),
 	publicKey("operator"),
 	uint64("balance"),
 	uint64("netsum"),
@@ -202,7 +208,7 @@ interface PIECElayout {
  * account struct REF
  **//*
 const REF_DATA_LAYOUT = BufferLayout.struct([
-	BufferLayout.u8("flags"),
+	BufferLayout.u16("flags"),
 	publicKey("target"),
 	BufferLayout.u32("fract"),
 	uint64("netsum"),
@@ -215,5 +221,5 @@ interface REFlayout {
 	netsum: Uint8Array;
 	refslug: Uint8Array;
 };
-
+*/
 

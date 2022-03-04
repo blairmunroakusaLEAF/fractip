@@ -14,6 +14,7 @@ import {
 import fs from 'mz/fs';
 import path from 'path';
 import * as borsh from 'borsh';
+import * as BufferLayout from "buffer-layout";
 
 import {getPayer, getRpcUrl, createKeypairFromFile} from './utils';
 
@@ -131,19 +132,19 @@ export async function establishPayer(): Promise<void> {
 }
 
 /**
- * Check if the hello world BPF program has been deployed
- */
+* Check if the hello world BPF program has been deployed
+*/
 export async function checkProgram(): Promise<void> {
-  // Read program id from keypair file
-  try {
-    const programKeypair = await createKeypairFromFile(PROGRAM_KEYPAIR_PATH);
-    programId = programKeypair.publicKey;
-  } catch (err) {
-    const errMsg = (err as Error).message;
-    throw new Error(
-      `Failed to read program keypair at '${PROGRAM_KEYPAIR_PATH}' due to error: ${errMsg}. Program may need to be deployed with \`solana program deploy dist/program/helloworld.so\``,
-    );
-  }
+// Read program id from keypair file
+try {
+const programKeypair = await createKeypairFromFile(PROGRAM_KEYPAIR_PATH);
+programId = programKeypair.publicKey;
+} catch (err) {
+const errMsg = (err as Error).message;
+throw new Error(
+`Failed to read program keypair at '${PROGRAM_KEYPAIR_PATH}' due to error: ${errMsg}. Program may need to be deployed with \`solana program deploy dist/program/helloworld.so\``,
+);
+}
 
   // Check if the program has been deployed
   const programInfo = await connection.getAccountInfo(programId);
