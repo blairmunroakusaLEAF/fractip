@@ -1,5 +1,12 @@
 # LOG
 
+
+. cleaning up client side
+x creating client function to gather account data and print
+	> need to clean things up first
+. figured out what to do
+blairmunroakusa@0630.030422.anch.AK:goldcouch
+```
 ```
 blairmunroakusa@1926.030322.anch.AK:FT
 . updated github

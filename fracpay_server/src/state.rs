@@ -25,6 +25,7 @@ pub const SIZE_PIECE: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + 
     // 119 bytes
 pub const SIZE_REF: u8 = (FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN) as u8;
     // 66 bytes
+    // ! recall, buffer account data max is 129B (?)
 
 pub struct MAIN {
     pub flags: u16,
@@ -68,8 +69,8 @@ impl Pack for MAIN {
         Ok( MAIN {
             flags: u16::from_le_bytes(*flags),
             operator: Pubkey::new_from_array(*operator),
-            balance: u64::from_le_bytes(*balance),
-            netsum: u64::from_le_bytes(*netsum),
+            balance: u64::from_be_bytes(*balance),
+            netsum: u64::from_be_bytes(*netsum),
             piececount: u16::from_le_bytes(*piececount),
         })
     }
@@ -119,8 +120,8 @@ impl Pack for PIECE {
         Ok( PIECE {
             flags: u16::from_le_bytes(*flags),
             operator: Pubkey::new_from_array(*operator),
-            balance: u64::from_le_bytes(*balance),
-            netsum: u64::from_le_bytes(*netsum),
+            balance: u64::from_be_bytes(*balance),
+            netsum: u64::from_be_bytes(*netsum),
             refcount: u16::from_le_bytes(*refcount),
             pieceslug: *pieceslug,
         })
@@ -148,8 +149,8 @@ impl Pack for PIECE {
 
         *flags_dst = flags.to_le_bytes();
         operator_dst.copy_from_slice(operator.as_ref());
-        *balance_dst = balance.to_le_bytes();
-        *netsum_dst = netsum.to_le_bytes();
+        *balance_dst = balance.to_be_bytes();
+        *netsum_dst = netsum.to_be_bytes();
         *refcount_dst = refcount.to_le_bytes();
         *pieceslug_dst = *pieceslug;
 
@@ -175,7 +176,7 @@ impl Pack for REF {
             flags: u16::from_le_bytes(*flags),
             target: Pubkey::new_from_array(*target),
             fract: u32::from_le_bytes(*fract),
-            netsum: u64::from_le_bytes(*netsum),
+            netsum: u64::from_be_bytes(*netsum),
             refslug: *refslug,
         })
     }
@@ -201,7 +202,7 @@ impl Pack for REF {
         *flags_dst = flags.to_le_bytes();
         target_dst.copy_from_slice(target.as_ref());
         *fract_dst = fract.to_le_bytes();
-        *netsum_dst = netsum.to_le_bytes();
+        *netsum_dst = netsum.to_be_bytes();
         *refslug_dst = *refslug;
     }
 }

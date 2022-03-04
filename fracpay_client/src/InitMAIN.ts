@@ -1,9 +1,21 @@
+/****************************************************************
+ * Fracpay client InitMAIN					*	
+ * blairmunroakusa@.0322.anch.AK				*
+ *								*
+ * InitMAIN creates a new operator.				*
+ * One each of MAIN, self PIECE, self REF accounts are created.	*
+ ****************************************************************/
+
+/****************************************************************
+ * imports							*
+ ****************************************************************/
+
 import * as BufferLayout from "buffer-layout";
 //import * as fs from "fs";
-import fs from "mz/fs";
-import os from "os";
-import path from "path";
-import yaml from "yaml";
+import * as fs from "mz/fs";
+import * as os from "os";
+import * as path from "path";
+import * as yaml from "yaml";
 import {
   Connection,
   Keypair,
@@ -21,7 +33,7 @@ import * as bs58 from "bs58";
 
 import {
 	establishConnection,
-	establishPayer,
+	establishOperator,
 	checkProgram,
 	getProgramID,
 	getKeypair,
@@ -31,16 +43,16 @@ import {
 import {
 	fracpayID,
 	connection,
-	payer,
+	operator,
 } from "./utils";
 
 require("trace");
 const Base58 = require("base-58");
 Error.stackTraceLimit = Infinity;
 
-/**
- * main
- **/
+/****************************************************************
+ * main								*
+ ****************************************************************/
 
 const InitMAIN = async () => {
 	
@@ -56,7 +68,7 @@ const InitMAIN = async () => {
 
 	// setup
 	await establishConnection();
-	await establishPayer();
+	await establishOperator();
 	await checkProgram();
 
 	// find MAIN address
@@ -64,8 +76,7 @@ const InitMAIN = async () => {
 		[new Uint8Array(toUTF8Array(operatorID))], fracpayID);
 	console.log(`. MAIN pda:\t\t${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
 
-	// (just discovered that seed is limited to 32 bytes)
-	// create PIECE pda seed	
+	// create PIECE pda seed, limited to 32 bytes	
 	let countPIECElow = countPIECE[0] & 0xFF; // mask for low order count byte
 	let countPIECEhigh = (countPIECE[0] >> 8) & 0xFF; // shift and mask for high order count byte
 	var pdaPIECEseed = toUTF8Array(pdaMAIN.toString().slice(0,30)).concat(countPIECEhigh, countPIECElow);
@@ -104,7 +115,7 @@ const InitMAIN = async () => {
 	let InitMAINtx = new Transaction().add(
 		new TransactionInstruction({
 			keys: [
-				{ pubkey: payer.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: operator.publicKey, isSigner: true, isWritable: true, },
 				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
 				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
 				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
@@ -116,7 +127,7 @@ const InitMAIN = async () => {
 		})
 	);
        
-console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [payer], )}`);
+console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [operator], )}`);
 
 
 	} catch {

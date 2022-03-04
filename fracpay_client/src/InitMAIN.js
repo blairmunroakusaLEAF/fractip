@@ -1,4 +1,11 @@
 "use strict";
+/****************************************************************
+ * Fracpay client InitMAIN					*
+ * blairmunroakusa@.0322.anch.AK				*
+ *								*
+ * InitMAIN creates a new operator.				*
+ * One each of MAIN, self PIECE, self REF accounts are created.	*
+ ****************************************************************/
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -36,17 +43,90 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-//import * as BufferLayout from "buffer-layout";
-//import * as fs from "fs";
-var fs = require("mz/fs");
-var os = require("os");
-var path = require("path");
-var yaml = require("yaml");
 var web3_js_1 = require("@solana/web3.js");
+var utils_1 = require("./utils");
+var utils_2 = require("./utils");
 require("trace");
-//require("crypto-js");
 var Base58 = require("base-58");
 Error.stackTraceLimit = Infinity;
+/****************************************************************
+ * main								*
+ ****************************************************************/
+var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var operatorKEY, operatorID, countPIECE, countREF, _a, pdaMAIN, bumpMAIN, countPIECElow, countPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, countREFlow, countREFhigh, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitMAINtx, _d, _e, _f, _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
+            case 0:
+                _h.trys.push([0, 8, , 9]);
+                operatorKEY = (0, utils_1.getKeypair)("operator");
+                operatorID = "I AM AN OPERATOR ID";
+                countPIECE = new Uint16Array(1);
+                countPIECE[0] = 0;
+                countREF = new Uint16Array(1);
+                countREF[0] = 0;
+                // setup
+                return [4 /*yield*/, (0, utils_1.establishConnection)()];
+            case 1:
+                // setup
+                _h.sent();
+                return [4 /*yield*/, (0, utils_1.establishOperator)()];
+            case 2:
+                _h.sent();
+                return [4 /*yield*/, (0, utils_1.checkProgram)()];
+            case 3:
+                _h.sent();
+                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([new Uint8Array((0, utils_1.toUTF8Array)(operatorID))], utils_2.fracpayID)];
+            case 4:
+                _a = _h.sent(), pdaMAIN = _a[0], bumpMAIN = _a[1];
+                console.log(". MAIN pda:\t\t".concat(pdaMAIN.toBase58(), " found after ").concat(256 - bumpMAIN, " tries"));
+                countPIECElow = countPIECE[0] & 0xFF;
+                countPIECEhigh = (countPIECE[0] >> 8) & 0xFF;
+                pdaPIECEseed = (0, utils_1.toUTF8Array)(pdaMAIN.toString().slice(0, 30)).concat(countPIECEhigh, countPIECElow);
+                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([new Uint8Array(pdaPIECEseed)], utils_2.fracpayID)];
+            case 5:
+                _b = _h.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
+                console.log(". Self PIECE pda:\t".concat(pdaPIECE.toBase58(), " found after ").concat(256 - bumpPIECE, " tries"));
+                countREFlow = countREF[0] & 0xFF;
+                countREFhigh = (countREF[0] >> 8) & 0xFF;
+                pdaREFseed = (0, utils_1.toUTF8Array)(pdaPIECE.toString().slice(0, 30)).concat(countREFhigh, countREFlow);
+                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaREFseed))], utils_2.fracpayID)];
+            case 6:
+                _c = _h.sent(), pdaREF = _c[0], bumpREF = _c[1];
+                console.log(". Self REF pda:\t\t".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
+                ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
+                    .concat(pdaREFseed)
+                    .concat(pdaPIECEseed)
+                    .concat((0, utils_1.toUTF8Array)(operatorID));
+                console.log("Buffer:");
+                console.log(ixDATA);
+                InitMAINtx = new web3_js_1.Transaction().add(new web3_js_1.TransactionInstruction({
+                    keys: [
+                        { pubkey: utils_2.operator.publicKey, isSigner: true, isWritable: true },
+                        { pubkey: web3_js_1.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+                        { pubkey: pdaMAIN, isSigner: false, isWritable: true },
+                        { pubkey: pdaPIECE, isSigner: false, isWritable: true },
+                        { pubkey: pdaREF, isSigner: false, isWritable: true },
+                        { pubkey: web3_js_1.SystemProgram.programId, isSigner: false, isWritable: false },
+                    ],
+                    data: Buffer.from(new Uint8Array(ixDATA)),
+                    programId: utils_2.fracpayID
+                }));
+                _e = (_d = console).log;
+                _f = "txhash: ".concat;
+                return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(utils_2.connection, InitMAINtx, [utils_2.operator])];
+            case 7:
+                _e.apply(_d, [_f.apply("txhash: ", [_h.sent()])]);
+                return [3 /*break*/, 9];
+            case 8:
+                _g = _h.sent();
+                console.log(Error);
+                console.log(Error.prototype.stack);
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
+        }
+    });
+}); };
+InitMAIN();
 // setup layouts and interface
 //
 /**
@@ -87,38 +167,8 @@ const uint64 = (property = "uint64") => {
  return BufferLayout.blob(8, property);
 };
 
-/**
-* sizes (because magic numbers are annoying)
-**/
-var FLAGS_SIZE = 2;
-var PUBKEY_SIZE = 32;
-var BALANCE_SIZE = 8;
-var NETSUM_SIZE = 8;
-var COUNT_SIZE = 4;
-var PIECESLUG_SIZE = 67; // 63 + 4
-var REFSLUG_SIZE = 20; // 16 + 4
-var MAIN_SIZE = FLAGS_SIZE +
-    PUBKEY_SIZE +
-    BALANCE_SIZE +
-    NETSUM_SIZE +
-    COUNT_SIZE; // = 86
-var PIECE_SIZE = FLAGS_SIZE +
-    PUBKEY_SIZE +
-    BALANCE_SIZE +
-    NETSUM_SIZE +
-    COUNT_SIZE +
-    PIECESLUG_SIZE; // = 154
-var REF_SIZE = FLAGS_SIZE +
-    PUBKEY_SIZE +
-    NETSUM_SIZE +
-    COUNT_SIZE +
-    REFSLUG_SIZE; // = 98
-/**
- * account struct MAIN
- **/ /*
-
 const MAIN_DATA_LAYOUT = BufferLayout.struct([
-   BufferLayout.u8("flags"),
+   BufferLayout.u16("flags"),
    publicKey("operator"),
    uint64("balance"),
    uint64("netsum"),
@@ -136,7 +186,7 @@ interface MAINlayout {
 * account struct PIECE
 **/ /*
 const PIECE_DATA_LAYOUT = BufferLayout.struct([
-   BufferLayout.u8("flags"),
+   BufferLayout.u16("flags"),
    publicKey("operator"),
    uint64("balance"),
    uint64("netsum"),
@@ -156,7 +206,7 @@ interface PIECElayout {
 * account struct REF
 **/ /*
 const REF_DATA_LAYOUT = BufferLayout.struct([
-   BufferLayout.u8("flags"),
+   BufferLayout.u16("flags"),
    publicKey("target"),
    BufferLayout.u32("fract"),
    uint64("netsum"),
@@ -169,170 +219,4 @@ interface REFlayout {
    netsum: Uint8Array;
    refslug: Uint8Array;
 };
-
-/**
-* main
-**/
-var connection;
-var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var fractipID, operatorKEY, operatorID, noPIECE, noREF, _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 2, , 3]);
-                fractipID = getProgramID();
-                operatorKEY = getKeypair("operator");
-                operatorID = "TESTOPERATORID";
-                noPIECE = new Uint16Array(1);
-                noPIECE[0] = 256;
-                noREF = new Uint16Array(1);
-                noREF[0] = 65000;
-                /**
-             * Establish a connection to the cluster
-             */
-                return [4 /*yield*/, establishConnection()];
-            case 1:
-                /**
-             * Establish a connection to the cluster
-             */
-                _b.sent();
-                return [3 /*break*/, 3];
-            case 2:
-                _a = _b.sent();
-                console.log(Error);
-                console.log(Error.prototype.stack);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-function establishConnection() {
-    return __awaiter(this, void 0, void 0, function () {
-        var rpcUrl, version;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, getRpcUrl()];
-                case 1:
-                    rpcUrl = _a.sent();
-                    connection = new web3_js_1.Connection(rpcUrl, 'confirmed');
-                    return [4 /*yield*/, connection.getVersion()];
-                case 2:
-                    version = _a.sent();
-                    console.log('Connection to cluster established:', rpcUrl, version);
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-function getRpcUrl() {
-    return __awaiter(this, void 0, void 0, function () {
-        var config, err_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, getConfig()];
-                case 1:
-                    config = _a.sent();
-                    if (!config.json_rpc_url)
-                        throw new Error('Missing RPC URL');
-                    return [2 /*return*/, config.json_rpc_url];
-                case 2:
-                    err_1 = _a.sent();
-                    console.warn('Failed to read RPC url from CLI config file, falling back to localhost');
-                    return [2 /*return*/, 'http://localhost:8899'];
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-function getConfig() {
-    return __awaiter(this, void 0, void 0, function () {
-        var CONFIG_FILE_PATH, configYml;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    CONFIG_FILE_PATH = path.resolve(os.homedir(), '.config', 'solana', 'cli', 'config.yml');
-                    return [4 /*yield*/, fs.readFile(CONFIG_FILE_PATH, { encoding: 'utf8' })];
-                case 1:
-                    configYml = _a.sent();
-                    return [2 /*return*/, yaml.parse(configYml)];
-            }
-        });
-    });
-}
-////////////////////////////////////////////////////////////////
-// takes in 64 byte array
-var getPrivateKey = function (name) {
-    return Uint8Array.from(JSON.parse(fs.readFileSync("./keys/".concat(name, "_pri.json"))));
-};
-// takes in base58 formatted string
-var getPublicKey = function (name) {
-    return new web3_js_1.PublicKey(JSON.parse(fs.readFileSync("./keys/".concat(name, "_pub.json"))));
-};
-var writePublicKey = function (publicKey, name) {
-    fs.writeFileSync("./keys/".concat(name, "_pub.json"), JSON.stringify(publicKey.toString()));
-};
-// public key is 32 bytes, log printed as 64 hex characters
-// private key is 64 bytes, log printerd as 64 byte array
-var getKeypair = function (name) {
-    return new web3_js_1.Keypair({
-        publicKey: getPublicKey(name).toBytes(),
-        secretKey: getPrivateKey(name)
-    });
-};
-var getProgramID = function () {
-    try {
-        return getPublicKey("fractip");
-    }
-    catch (error) {
-        console.log("Given programId is missing or incorrect");
-        process.exit(1);
-    }
-};
-InitMAIN();
-function fromUTF8Array(data) {
-    var str = '', i;
-    for (i = 0; i < data.length; i++) {
-        var value = data[i];
-        if (value < 0x80) {
-            str += String.fromCharCode(value);
-        }
-        else if (value > 0xBF && value < 0xE0) {
-            str += String.fromCharCode((value & 0x1F) << 6 | data[i + 1] & 0x3F);
-            i += 1;
-        }
-        else if (value > 0xDF && value < 0xF0) {
-            str += String.fromCharCode((value & 0x0F) << 12 | (data[i + 1] & 0x3F) << 6 | data[i + 2] & 0x3F);
-            i += 2;
-        }
-        else {
-            // surrogate pair
-            var charCode = ((value & 0x07) << 18 | (data[i + 1] & 0x3F) << 12 | (data[i + 2] & 0x3F) << 6 | data[i + 3] & 0x3F) - 0x010000;
-            str += String.fromCharCode(charCode >> 10 | 0xD800, charCode & 0x03FF | 0xDC00);
-            i += 3;
-        }
-    }
-    return str;
-}
-function toUTF8Array(str) {
-    var utf8 = [];
-    for (var i = 0; i < str.length; i++) {
-        var charcode = str.charCodeAt(i);
-        if (charcode < 0x80)
-            utf8.push(charcode);
-        else if (charcode < 0x800) {
-            utf8.push(0xc0 | (charcode >> 6), 0x80 | (charcode & 0x3f));
-        }
-        else if (charcode < 0xd800 || charcode >= 0xe000) {
-            utf8.push(0xe0 | (charcode >> 12), 0x80 | ((charcode >> 6) & 0x3f), 0x80 | (charcode & 0x3f));
-        }
-        // surrogate pair
-        else {
-            i++;
-            charcode = ((charcode & 0x3ff) << 10) | (str.charCodeAt(i) & 0x3ff);
-            utf8.push(0xf0 | (charcode >> 18), 0x80 | ((charcode >> 12) & 0x3f), 0x80 | ((charcode >> 6) & 0x3f), 0x80 | (charcode & 0x3f));
-        }
-    }
-    return utf8;
-}
+*/
