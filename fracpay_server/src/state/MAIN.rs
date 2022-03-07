@@ -1,6 +1,6 @@
 /****************************************************************
- * Fracpay server MAIN state implementation         			*	
- * blairmunroakusa@.0322.anch.AK			                	*
+ * Fracpay server MAIN state implementation   
+ * blairmunroakusa@.0322.anch.AK
  ****************************************************************/
 #![allow(non_snake_case)]
 

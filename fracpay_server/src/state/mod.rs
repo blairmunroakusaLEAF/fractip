@@ -1,6 +1,6 @@
 /****************************************************************
- * Fracpay server state module declaration           			*
- * blairmunroakusa@.0322.anch.AK			                	*
+ * Fracpay server state module declaration     
+ * blairmunroakusa@.0322.anch.AK			  
  ****************************************************************/
 
 pub mod constants;

@@ -1,4 +1,7 @@
-// constants for global use
+/****************************************************************
+ * Fracpay server global constants
+ * blairmunroakusa@.0322.anch.AK
+ ****************************************************************/
 
 pub const PIECESLUG_LEN: usize = 67;
 pub const REFSLUG_LEN: usize = 20;

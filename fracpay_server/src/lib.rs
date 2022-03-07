@@ -1,6 +1,6 @@
 /****************************************************************
- * Fracpay server module declarations                			*
- * blairmunroakusa@.0322.anch.AK			                	*
+ * Fracpay server module declarations  
+ * blairmunroakusa@.0322.anch.AK	
  ****************************************************************/
 
 pub mod error;

@@ -1,6 +1,6 @@
 /****************************************************************
- * Fracpay server process run                          			*
- * blairmunroakusa@.0322.anch.AK			                	*
+ * Fracpay server process run      
+ * blairmunroakusa@.0322.anch.AK
  ****************************************************************/
 
 #![allow(non_snake_case)]
