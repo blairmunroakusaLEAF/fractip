@@ -1,12 +1,10 @@
 /****************************************************************
- * Fracpay server module declarations                			*
+ * Fracpay server processor module declaration         			*
  * blairmunroakusa@.0322.anch.AK			                	*
  ****************************************************************/
 
-pub mod error;
-pub mod instruction;
-pub mod processor;
-pub mod state;
-
-#[cfg(not(feature = "no-entrypoint"))]
-pub mod entrypoint;
+pub mod run;
+pub mod createmain;
+pub mod createpiece;
+pub mod createref;
+pub mod utility;

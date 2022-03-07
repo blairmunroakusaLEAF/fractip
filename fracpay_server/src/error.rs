@@ -1,3 +1,8 @@
+/****************************************************************
+ * Fracpay server error handling                    			*
+ * blairmunroakusa@.0322.anch.AK			                	*
+ ****************************************************************/
+
 use thiserror::Error;
 
 use solana_program::program_error::ProgramError;

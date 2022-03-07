@@ -1,3 +1,8 @@
+/****************************************************************
+ * Fracpay server entrypoint                         			*
+ * blairmunroakusa@.0322.anch.AK			                	*
+ ****************************************************************/
+
 use solana_program::{
     entrypoint,
     account_info::AccountInfo,
@@ -5,7 +10,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-use crate::processor::Processor;
+use crate::processor::run::Processor;
 
 entrypoint!(process_instruction);
 fn process_instruction(

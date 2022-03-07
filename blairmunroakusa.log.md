@@ -1,5 +1,6 @@
 # LOG
 ```
+. restructuring server
 blairmunroakusa@0753.030722.anch.AK:goldcouch
 . CreateREF, CreatePIECE, CreateMAIN complete
 . cleaned up + wrote tx function
