@@ -9,7 +9,12 @@ use solana_program::{
         },
     };
 
-use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
+use arrayref::{
+        array_mut_ref,
+        array_ref,
+        mut_array_refs,
+        array_refs,
+    };
 
 pub const PIECESLUG_LEN: usize = 67;
 pub const REFSLUG_LEN: usize = 20;
@@ -25,7 +30,6 @@ pub const SIZE_PIECE: u8 = (FLAGS_LEN + PUBKEY_LEN + BALANCE_LEN + NETSUM_LEN + 
     // 119 bytes
 pub const SIZE_REF: u8 = (FLAGS_LEN + PUBKEY_LEN + FRACT_LEN + NETSUM_LEN + REFSLUG_LEN) as u8;
     // 66 bytes
-    // ! recall, buffer account data max is 129B (?)
 
 pub struct MAIN {
     pub flags: u16,

@@ -1,6 +1,37 @@
 # LOG
+```
 
+. update gh
+blairmunroakusa@0606.030722.anch.AK:goldcouch
+```
+```
+blairmunroakusa@1605.030722.anch.AK
+. starting InitREF
+. clean up InitMAIN and utils
+. finished ListPIECE
+blairmunroakusa@0628.030622.anch.AK:goldcouch
+```
+```
+blairmunroakusa@1920.030522.anch.AK:FT
+. dialing in ListPIECE
+. InitPIECE tests out good
+. adding other logic stuff
+. adding count-order logic to server InitPIECE
+blairmunroakusa@1531.030522.anch.AK:steamdot
+. ironed out InitPIECE logic difficulties
+. created ListPIECE client function
+. adjusted intitial flags for Init server side
 
+tired
+blairmunroakusa@0633.030522.anch.AK:goldcouch
+```
+```
+blairmunroakusa@2000.030422.anch.AK:FT
+. other stuff
+. honing flags
+. created InitREF server side
+. created InitPIECE client and server side
+blairmunroakusa@1200.030422.anch.AK:steamdot
 . added account check to InitMAIN
 . cleaning up client side
 x creating client function to gather account data and print

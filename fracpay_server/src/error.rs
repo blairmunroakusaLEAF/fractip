@@ -3,7 +3,7 @@ use thiserror::Error;
 use solana_program::program_error::ProgramError;
 
 #[derive(Error, Debug, Copy, Clone)]
-pub enum PayfractError {
+pub enum FracpayError {
     /// Invalid instruction
     #[error("Invalid Instruction")]
     InvalidInstruction,
@@ -19,10 +19,13 @@ pub enum PayfractError {
     /// Try From Slice
     #[error("Try From Slice Fail")]
     TryFromSliceError,
+    /// Account Creation Attempt Fail
+    #[error("Account Creation Attempt Fail")]
+    AccountCreationAttemptError,
 }
 
-impl From<PayfractError> for ProgramError {
-    fn from(error: PayfractError) -> Self {
+impl From<FracpayError> for ProgramError {
+    fn from(error: FracpayError) -> Self {
         ProgramError::Custom(error as u32)
     }
 }

@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
 use solana_program::{
-        program_error::ProgramError,
         msg,
+        program_error::ProgramError,
     };
 
-use crate::error::PayfractError::InvalidInstruction;
+use crate::error::FracpayError::InvalidInstruction;
 
-pub enum PayfractInstruction {
+pub enum FracpayInstruction {
 
     // instruction to create operator main account
     InitMAIN {
@@ -18,21 +18,26 @@ pub enum PayfractInstruction {
         seedPIECE: Vec<u8>,
         bumpREF: u8,
         seedREF: Vec<u8>,
-    }
-   /* 
+    },
+ 
     // instruction to create piece main account
     InitPIECE {
 
-        bumpPiece: u8,
-        bumpRef: u8,
-    }
-    
+        bumpPIECE: u8,
+        seedPIECE: Vec<u8>,
+        bumpREF: u8,
+        seedREF: Vec<u8>,
+        PIECEslug: Vec<u8>,
+    },
+   
     // instruction to create piece ref account
     InitREF {
 
-        bumpRef: u8,
-    }
-
+        bumpREF: u8,
+        seedREF: Vec<u8>,
+        REFslug: Vec<u8>,
+    },
+/*
     // instruction to create piece ref account
     PropagateContribution {
 
@@ -43,9 +48,9 @@ pub enum PayfractInstruction {
 }
 
 
-impl PayfractInstruction {
+impl FracpayInstruction {
 
-    // Unpacks a byte buffer into a PayfractInstruction
+    // Unpacks a byte buffer into a FracpayInstruction
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
 
         let (tag, rest) = input.split_first().ok_or(InvalidInstruction)?;
@@ -60,14 +65,19 @@ impl PayfractInstruction {
                 bumpREF: rest[2],
                 seedREF: rest[3..35].to_vec(),
             },
-            /*
             1 => Self::InitPIECE {
-                bumpPiece: Self::extract_bumppiece(rest)?,
-                bumpRef: Self::extract_bumpref(rest)?,
+                bumpPIECE: rest[0],
+                seedPIECE: rest[34..66].to_vec(),
+                bumpREF: rest[1],
+                seedREF: rest[2..34].to_vec(),
+                PIECEslug: rest[66..].to_vec(),
             },
             2 => Self::InitREF {
-                bumpRef: Self::extract_bumpref(rest)?,
+                bumpREF: rest[0],
+                seedREF: rest[1..33].to_vec(),
+                REFslug: rest[33..].to_vec(),
             },
+            /*
             3 => Self::PropagateContribution {
                 target: Self::extract_target(rest)?,
                 fract: Self::extract_fract(rest)?,

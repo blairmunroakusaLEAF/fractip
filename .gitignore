@@ -7,12 +7,18 @@ target
 example-helloworld
 node_modules
 test-ledger
+~\$
+*.swp
 
+# project stuff
+fracpay_client/src/*.js
+fracpay_client/src/yarn*
+fracpay_client/src/package-lock.json
+fracpay_server/Cargo.lock
 
 # soft local navigation links
 *\[
 ]*
 
 # system stuff
-*.swp
 .DS_STORE
