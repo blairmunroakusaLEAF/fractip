@@ -7,7 +7,7 @@ target
 example-helloworld
 node_modules
 test-ledger
-~\$
+~\$*
 *.swp
 
 # project stuff
