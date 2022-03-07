@@ -23,7 +23,10 @@ import * as fs from "mz/fs";
 import * as path from "path";
 import * as yaml from "yaml";
 import * as BufferLayout from "buffer-layout";
-import * as BigNumber from "bignumber";
+const BigNumber = require("bignumber.js");
+const bs58 = require("bs58");
+const lodash = require("lodash");
+
 
 /****************************************************************
  * declare constants						*
@@ -36,7 +39,7 @@ export const NETSUM_SIZE = 8;
 export const COUNT_SIZE = 2;
 export const FRACT_SIZE = 4;
 export const PIECESLUG_SIZE = 67; 	// 63 + 4
-export const REFSLUG_SIZE = 20;	// 16 + 4
+export const REFSLUG_SIZE = 20;		// 16 + 4
 
 export const MAIN_SIZE = FLAGS_SIZE +
 			PUBKEY_SIZE +
@@ -58,7 +61,7 @@ export const REF_SIZE = FLAGS_SIZE +
 		  	REFSLUG_SIZE;		// = 66
 
 export let connection: Connection;
-export let operator: Keypair;
+export let operatorKEY: Keypair;
 export let fracpayID: PublicKey;
 
 export const PROGRAM_KEYFILE = "fracpay_server-keypair.json";
@@ -70,6 +73,156 @@ export const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
 /****************************************************************
  * general functions						*
  ****************************************************************/
+/**
+* get PIECE list
+**/
+export async function printPIECElist(pdaMAIN: PublicKey, count: number) {
+
+	// initialize piece counter
+	var countPIECE = new Uint16Array(1);
+	countPIECE[0] = 0;
+
+	// find self PIECE address
+	var pdaPIECEseed = createSeed(pdaMAIN, countPIECE);
+	var [pdaPIECE, bumpPIECE] = await deriveAddress(pdaPIECEseed);
+
+	// get self PIECE data
+	var PIECE = await getPIECEdata(pdaPIECE);
+
+	// print self PIECE data
+	console.log(`# 0\tOPERATOR:\t${PIECE.pieceslug}`);
+
+	// cycle through all pieces
+	for (countPIECE[0] = 1; countPIECE[0] <= count; countPIECE[0]++) {
+
+		// find PIECE address
+		pdaPIECEseed = createSeed(pdaMAIN, countPIECE);
+		[pdaPIECE, bumpPIECE] = await deriveAddress(pdaPIECEseed);
+
+		// get PIECE data
+		PIECE = await getPIECEdata(pdaPIECE);
+
+		// print PIECE data
+		console.log(`# ${countPIECE[0]}\tPIECE ID:\t${PIECE.pieceslug}`);
+	}	
+}
+
+/**
+* get MAIN account data
+**/
+export async function getMAINdata(pdaMAIN: PublicKey) {
+	// get MAIN account data
+	const MAINaccount = await connection.getAccountInfo(pdaMAIN);
+	if (MAINaccount === null || MAINaccount.data.length === 0) {
+		console.log(`! MAIN account for this operator ID has not been created.`);
+		process.exit(1);
+	}
+
+	// build MAIN struct
+	const encodedMAINstate = MAINaccount.data;
+	const decodedMAINstate = MAIN_DATA_LAYOUT.decode(encodedMAINstate) as MAINlayout;
+	return {
+		flags: decodedMAINstate.flags,
+		operator: new PublicKey(decodedMAINstate.operator),
+		balance: new BigNumber("0x" + decodedMAINstate.balance.toString("hex")),
+		netsum: new BigNumber("0x" + decodedMAINstate.netsum.toString("hex")),
+		piececount: decodedMAINstate.piececount,
+	}
+}
+/**
+* get PIECE account data
+**/
+export async function getPIECEdata(pdaPIECE: PublicKey) {
+	// get PIECE account data
+	const PIECEaccount = await connection.getAccountInfo(pdaPIECE);
+	if (PIECEaccount === null || PIECEaccount.data.length === 0) {
+		console.log(`! This PIECE account has not been created.`);
+		process.exit(1);
+	}
+
+	// build PIECE struct
+	const encodedPIECEstate = PIECEaccount.data;
+	const decodedPIECEstate = PIECE_DATA_LAYOUT.decode(encodedPIECEstate) as PIECElayout;
+	return {
+		flags: decodedPIECEstate.flags,
+		operator: new PublicKey(decodedPIECEstate.operator),
+		balance: new BigNumber("0x" + decodedPIECEstate.balance.toString("hex")),
+		netsum: new BigNumber("0x" + decodedPIECEstate.netsum.toString("hex")),
+		refcount: decodedPIECEstate.refcount,
+		pieceslug: decodedPIECEstate.pieceslug.toString(),
+
+	}
+}
+/**
+* get REF account data
+**/
+export async function getREFdata(pdaREF: PublicKey) {
+	// get REF account data
+	const REFaccount = await connection.getAccountInfo(pdaREF);
+	if (REFaccount === null || REFaccount.data.length === 0) {
+		console.log(`! This REF account has not been created.`);
+		process.exit(1);
+	}
+
+	// build MAIN struct
+	const encodedREFstate = REFaccount.data;
+	const decodedREFstate = REF_DATA_LAYOUT.decode(encodedREFstate) as REFlayout;
+	return {
+		flags: decodedREFstate.flags,
+		target: new PublicKey(decodedREFstate.target),
+		fract: decodedREFstate.fract,
+		netsum: new BigNumber("0x" + decodedREFstate.netsum.toString("hex")),
+		refslug: decodedREFstate.refslug.toString(),
+
+	}
+}
+/**
+* create pda seed
+**/
+export function createSeed(pda: PublicKey, count: Uint16Array) {
+	let countLow = count[0] & 0xFF; 		// mask for low order count byte
+	let countHigh = (count[0] >> 8) & 0xFF; 	// shift and mask for high order count byte
+	return toUTF8Array(pda
+			   .toString()
+			   .slice(0,PUBKEY_SIZE - COUNT_SIZE))
+			   .concat(countHigh, countLow);
+}
+
+/**
+* derive pda
+**/
+export async function deriveAddress(seed: any[]) {
+	return await PublicKey.findProgramAddress(
+		[new Uint8Array(seed)], fracpayID);
+}
+
+/**
+* check to make sure operator ID isn't already taken
+**/
+export async function availableIDcheck(operatorID: string): Promise<void> {
+	const operatorIDaccount = await connection.getParsedProgramAccounts(
+		fracpayID,
+		{
+			filters: [
+				{
+					dataSize: PIECE_SIZE,
+				},
+				{
+					memcmp: {
+						offset: PIECE_SIZE - PIECESLUG_SIZE,
+						bytes: bs58.encode(toUTF8Array(operatorID)),
+					},
+				},
+			],
+		},
+	);
+	if (!lodash.isEqual(operatorIDaccount, [])) {
+		console.log(`! The operator ID '${operatorID}' already has a MAIN account associated with it.\n`,
+			    ` Choose a different ID for your operator MAIN account.`,
+		);
+		process.exit(1);
+	}
+}
 
 /**
 * Check if the hello world BPF program has been deployed
@@ -134,7 +287,7 @@ async function getConfig(): Promise<any> {
  **/
 export async function establishOperator(): Promise<void> {
   	let fees = 0;
-  	if (!operator) {
+  	if (!operatorKEY) {
     		const {feeCalculator} = await connection.getRecentBlockhash();
 
  		// Calculate the cost to fund the greeter account
@@ -143,10 +296,10 @@ export async function establishOperator(): Promise<void> {
     		// Calculate the cost of sending transactions
     		fees += feeCalculator.lamportsPerSignature * 100; // wag
 
-    		operator = await getOperator();
+    		operatorKEY = await getOperator();
   	}
 
-  	let lamports = await connection.getBalance(operator.publicKey);
+  	let lamports = await connection.getBalance(operatorKEY.publicKey);
   	if (lamports < fees) {
 
     		// If current balance is not enough to pay for fees, request an airdrop
@@ -158,7 +311,7 @@ export async function establishOperator(): Promise<void> {
 
   	console.log(
     		". Operator account is:\t",
-    		operator.publicKey.toBase58(),
+    		operatorKEY.publicKey.toBase58(),
     		"containing",
     		lamports / LAMPORTS_PER_SOL,
     		"SOL to pay for fees",
@@ -166,7 +319,7 @@ export async function establishOperator(): Promise<void> {
 }
 
 /**
- * setup operator as Keypair
+ * setup operatorKEY as Keypair
  **/
 async function getOperator(): Promise<Keypair> {
   	try {

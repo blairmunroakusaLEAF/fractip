@@ -23,7 +23,7 @@ const BigNumber = require("bignumber.js");
 
 import {
 	establishConnection,
-	establishPayer,
+	establishOperator,
 	checkProgram,
 	getProgramID,
 	getKeypair,
@@ -33,13 +33,15 @@ import {
 import {
 	fracpayID,
 	connection,
-	payer,
+	operator,
 	MAIN_DATA_LAYOUT,
 	MAINlayout,
 	PIECE_DATA_LAYOUT,
 	PIECElayout,
 	REF_DATA_LAYOUT,
 	REFlayout,
+	PIECE_SIZE,
+	PIECESLUG_SIZE,
 } from "./utils";
 
 require("trace");
@@ -66,7 +68,6 @@ const InitPIECE = async () => {
 
 	// setup
 	await establishConnection();
-	await establishPayer();
 	await checkProgram();
 
 	// get main account data
@@ -76,9 +77,23 @@ const InitPIECE = async () => {
 		[new Uint8Array(toUTF8Array(operatorID))], fracpayID);
 	console.log(`. MAIN pda:\t\t${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
 
+	// get piece count
+	
+	// set MAIN struct from get acct info
 	const MAINaccount = await connection.getAccountInfo(pdaMAIN);
 
-	console.log(MAINaccount.data);
+	const encodedMAINstate = MAINaccount.data;
+	const decodedMAINstate = MAIN_DATA_LAYOUT.decode(encodedMAINstate) as MAINlayout;
+	var MAIN = {
+		flags: decodedMAINstate.flags,
+		operator: new PublicKey(decodedMAINstate.operator),
+		balance: new BigNumber("0x" + decodedMAINstate.balance.toString("hex")),
+		netsum: new BigNumber("0x" + decodedMAINstate.netsum.toString("hex")),
+		piececount: decodedMAINstate.piececount,
+	}
+
+	console.log(`Operator:\t${operatorID}`);
+	console.log(`PIECE count:\t${MAIN.piececount}`);
 
 	if (MAINaccount === null || MAINaccount.data.length === 0) {
 		console.log("! MAIN pda account has not been initialized properly");
@@ -106,16 +121,6 @@ const InitPIECE = async () => {
 	}
 
 
-	// set MAIN struct from get acct info
-	const encodedMAINstate = MAINaccount.data;
-	const decodedMAINstate = MAIN_DATA_LAYOUT.decode(encodedMAINstate) as MAINlayout;
-	var MAIN = {
-		flags: decodedMAINstate.flags,
-		operator: new PublicKey(decodedMAINstate.operator),
-		balance: new BigNumber("0x" + decodedMAINstate.balance.toString("hex")),
-		netsum: new BigNumber("0x" + decodedMAINstate.netsum.toString("hex")),
-		piececount: decodedMAINstate.piececount,
-	}
 	console.log(MAIN.netsum.toString());
 	
 	// set PIECE struct from get acct info
@@ -134,9 +139,37 @@ const InitPIECE = async () => {
 	console.log(PIECE.netsum)
 	console.log(PIECE.balance);
 	console.log(PIECE.operator);
-	console.log(payer.publicKey);
+	console.log(operator.publicKey);
 	console.log(PIECE.pieceslug);
-
+/*
+	// find REF address
+	let [pdaREF, bumpREF] = await PublicKey.findProgramAddress(
+		[Buffer.from(new Uint8Array(pdaREFseed))], fracpayID);
+	console.log(`. Self REF pda:\t\t${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
+*/
+	// check payfract for pdaMAIN associated with operatorID
+	const operatorIDcheck = await connection.getParsedProgramAccounts(
+		fracpayID,
+		{
+			filters: [
+				{
+					dataSize: PIECE_SIZE,
+				},
+				{
+					memcmp: {
+						offset: PIECE_SIZE - PIECESLUG_SIZE,
+						bytes: bs58.encode(toUTF8Array(operatorID)),
+					},
+				},
+			],
+		},
+	);
+	if (operatorIDcheck) {
+		console.log(`! The operator ID '${operatorID}' already has an account associated with it.\n`,
+			    ` Choose a different ID for your operator account.`,
+		);
+		process.exit(1);
+	}
 /*
 	const MAIN.balance = MAIN.balance.readUInt32LE(0); // need to figure out get u64 from this
 	const MAIN.netsum = MAIN.netsum.readUInt32LE(0); // need to figure out get u64 from this
@@ -189,7 +222,7 @@ const InitPIECE = async () => {
 	let InitMAINtx = new Transaction().add(
 		new TransactionInstruction({
 			keys: [
-				{ pubkey: payer.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: operator.publicKey, isSigner: true, isWritable: true, },
 				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
 				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
 				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
@@ -201,7 +234,7 @@ const InitPIECE = async () => {
 		})
 	);
        
-console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [payer], )}`);
+console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [operator], )}`);
 */
 
 	} catch {

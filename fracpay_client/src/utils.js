@@ -40,7 +40,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.REF_DATA_LAYOUT = exports.PIECE_DATA_LAYOUT = exports.MAIN_DATA_LAYOUT = exports.toUTF8Array = exports.fromUTF8Array = exports.getProgramID = exports.getKeypair = exports.establishOperator = exports.establishConnection = exports.checkProgram = exports.PROGRAM_KEYPAIR_PATH = exports.PROGRAM_PATH = exports.PROGRAM_KEYFILE = exports.fracpayID = exports.operator = exports.connection = exports.REF_SIZE = exports.PIECE_SIZE = exports.MAIN_SIZE = exports.REFSLUG_SIZE = exports.PIECESLUG_SIZE = exports.FRACT_SIZE = exports.COUNT_SIZE = exports.NETSUM_SIZE = exports.BALANCE_SIZE = exports.PUBKEY_SIZE = exports.FLAGS_SIZE = void 0;
+exports.REF_DATA_LAYOUT = exports.PIECE_DATA_LAYOUT = exports.MAIN_DATA_LAYOUT = exports.toUTF8Array = exports.fromUTF8Array = exports.getProgramID = exports.getKeypair = exports.establishOperator = exports.establishConnection = exports.checkProgram = exports.availableIDcheck = exports.deriveAddress = exports.createSeed = exports.getREFdata = exports.getPIECEdata = exports.getMAINdata = exports.printPIECElist = exports.PROGRAM_KEYPAIR_PATH = exports.PROGRAM_PATH = exports.PROGRAM_KEYFILE = exports.fracpayID = exports.operatorKEY = exports.connection = exports.REF_SIZE = exports.PIECE_SIZE = exports.MAIN_SIZE = exports.REFSLUG_SIZE = exports.PIECESLUG_SIZE = exports.FRACT_SIZE = exports.COUNT_SIZE = exports.NETSUM_SIZE = exports.BALANCE_SIZE = exports.PUBKEY_SIZE = exports.FLAGS_SIZE = void 0;
 /****************************************************************
  * imports							*
  ****************************************************************/
@@ -50,6 +50,9 @@ var fs = require("mz/fs");
 var path = require("path");
 var yaml = require("yaml");
 var BufferLayout = require("buffer-layout");
+var BigNumber = require("bignumber.js");
+var bs58 = require("bs58");
+var lodash = require("lodash");
 /****************************************************************
  * declare constants						*
  ****************************************************************/
@@ -83,6 +86,199 @@ exports.PROGRAM_KEYPAIR_PATH = path.join(exports.PROGRAM_PATH, exports.PROGRAM_K
 /****************************************************************
  * general functions						*
  ****************************************************************/
+/**
+* get PIECE list
+**/
+function printPIECElist(pdaMAIN, count) {
+    return __awaiter(this, void 0, void 0, function () {
+        var countPIECE, pdaPIECEseed, _a, pdaPIECE, bumpPIECE, PIECE;
+        var _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    countPIECE = new Uint16Array(1);
+                    countPIECE[0] = 0;
+                    pdaPIECEseed = createSeed(pdaMAIN, countPIECE);
+                    return [4 /*yield*/, deriveAddress(pdaPIECEseed)];
+                case 1:
+                    _a = _c.sent(), pdaPIECE = _a[0], bumpPIECE = _a[1];
+                    return [4 /*yield*/, getPIECEdata(pdaPIECE)];
+                case 2:
+                    PIECE = _c.sent();
+                    // print self PIECE data
+                    console.log("# 0\tOPERATOR:\t".concat(PIECE.pieceslug));
+                    countPIECE[0] = 1;
+                    _c.label = 3;
+                case 3:
+                    if (!(countPIECE[0] <= count)) return [3 /*break*/, 7];
+                    // find PIECE address
+                    pdaPIECEseed = createSeed(pdaMAIN, countPIECE);
+                    return [4 /*yield*/, deriveAddress(pdaPIECEseed)];
+                case 4:
+                    _b = _c.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
+                    return [4 /*yield*/, getPIECEdata(pdaPIECE)];
+                case 5:
+                    // get PIECE data
+                    PIECE = _c.sent();
+                    // print PIECE data
+                    console.log("# ".concat(countPIECE[0], "\tPIECE ID:\t").concat(PIECE.pieceslug));
+                    _c.label = 6;
+                case 6:
+                    countPIECE[0]++;
+                    return [3 /*break*/, 3];
+                case 7: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.printPIECElist = printPIECElist;
+/**
+* get MAIN account data
+**/
+function getMAINdata(pdaMAIN) {
+    return __awaiter(this, void 0, void 0, function () {
+        var MAINaccount, encodedMAINstate, decodedMAINstate;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, exports.connection.getAccountInfo(pdaMAIN)];
+                case 1:
+                    MAINaccount = _a.sent();
+                    if (MAINaccount === null || MAINaccount.data.length === 0) {
+                        console.log("! MAIN account for this operator ID has not been created.");
+                        process.exit(1);
+                    }
+                    encodedMAINstate = MAINaccount.data;
+                    decodedMAINstate = exports.MAIN_DATA_LAYOUT.decode(encodedMAINstate);
+                    return [2 /*return*/, {
+                            flags: decodedMAINstate.flags,
+                            operator: new web3_js_1.PublicKey(decodedMAINstate.operator),
+                            balance: new BigNumber("0x" + decodedMAINstate.balance.toString("hex")),
+                            netsum: new BigNumber("0x" + decodedMAINstate.netsum.toString("hex")),
+                            piececount: decodedMAINstate.piececount
+                        }];
+            }
+        });
+    });
+}
+exports.getMAINdata = getMAINdata;
+/**
+* get PIECE account data
+**/
+function getPIECEdata(pdaPIECE) {
+    return __awaiter(this, void 0, void 0, function () {
+        var PIECEaccount, encodedPIECEstate, decodedPIECEstate;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, exports.connection.getAccountInfo(pdaPIECE)];
+                case 1:
+                    PIECEaccount = _a.sent();
+                    if (PIECEaccount === null || PIECEaccount.data.length === 0) {
+                        console.log("! This PIECE account has not been created.");
+                        process.exit(1);
+                    }
+                    encodedPIECEstate = PIECEaccount.data;
+                    decodedPIECEstate = exports.PIECE_DATA_LAYOUT.decode(encodedPIECEstate);
+                    return [2 /*return*/, {
+                            flags: decodedPIECEstate.flags,
+                            operator: new web3_js_1.PublicKey(decodedPIECEstate.operator),
+                            balance: new BigNumber("0x" + decodedPIECEstate.balance.toString("hex")),
+                            netsum: new BigNumber("0x" + decodedPIECEstate.netsum.toString("hex")),
+                            refcount: decodedPIECEstate.refcount,
+                            pieceslug: decodedPIECEstate.pieceslug.toString()
+                        }];
+            }
+        });
+    });
+}
+exports.getPIECEdata = getPIECEdata;
+/**
+* get REF account data
+**/
+function getREFdata(pdaREF) {
+    return __awaiter(this, void 0, void 0, function () {
+        var REFaccount, encodedREFstate, decodedREFstate;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, exports.connection.getAccountInfo(pdaREF)];
+                case 1:
+                    REFaccount = _a.sent();
+                    if (REFaccount === null || REFaccount.data.length === 0) {
+                        console.log("! This REF account has not been created.");
+                        process.exit(1);
+                    }
+                    encodedREFstate = REFaccount.data;
+                    decodedREFstate = exports.REF_DATA_LAYOUT.decode(encodedREFstate);
+                    return [2 /*return*/, {
+                            flags: decodedREFstate.flags,
+                            target: new web3_js_1.PublicKey(decodedREFstate.target),
+                            fract: decodedREFstate.fract,
+                            netsum: new BigNumber("0x" + decodedREFstate.netsum.toString("hex")),
+                            refslug: decodedREFstate.refslug.toString()
+                        }];
+            }
+        });
+    });
+}
+exports.getREFdata = getREFdata;
+/**
+* create pda seed
+**/
+function createSeed(pda, count) {
+    var countLow = count[0] & 0xFF; // mask for low order count byte
+    var countHigh = (count[0] >> 8) & 0xFF; // shift and mask for high order count byte
+    return toUTF8Array(pda
+        .toString()
+        .slice(0, exports.PUBKEY_SIZE - exports.COUNT_SIZE))
+        .concat(countHigh, countLow);
+}
+exports.createSeed = createSeed;
+/**
+* derive pda
+**/
+function deriveAddress(seed) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([new Uint8Array(seed)], exports.fracpayID)];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+exports.deriveAddress = deriveAddress;
+/**
+* check to make sure operator ID isn't already taken
+**/
+function availableIDcheck(operatorID) {
+    return __awaiter(this, void 0, void 0, function () {
+        var operatorIDaccount;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, exports.connection.getParsedProgramAccounts(exports.fracpayID, {
+                        filters: [
+                            {
+                                dataSize: exports.PIECE_SIZE
+                            },
+                            {
+                                memcmp: {
+                                    offset: exports.PIECE_SIZE - exports.PIECESLUG_SIZE,
+                                    bytes: bs58.encode(toUTF8Array(operatorID))
+                                }
+                            },
+                        ]
+                    })];
+                case 1:
+                    operatorIDaccount = _a.sent();
+                    if (!lodash.isEqual(operatorIDaccount, [])) {
+                        console.log("! The operator ID '".concat(operatorID, "' already has a MAIN account associated with it.\n"), " Choose a different ID for your operator MAIN account.");
+                        process.exit(1);
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.availableIDcheck = availableIDcheck;
 /**
 * Check if the hello world BPF program has been deployed
 **/
@@ -181,7 +377,7 @@ function establishOperator() {
             switch (_b.label) {
                 case 0:
                     fees = 0;
-                    if (!!exports.operator) return [3 /*break*/, 4];
+                    if (!!exports.operatorKEY) return [3 /*break*/, 4];
                     return [4 /*yield*/, exports.connection.getRecentBlockhash()];
                 case 1:
                     feeCalculator = (_b.sent()).feeCalculator;
@@ -195,16 +391,16 @@ function establishOperator() {
                     fees += feeCalculator.lamportsPerSignature * 100; // wag
                     return [4 /*yield*/, getOperator()];
                 case 3:
-                    exports.operator = _b.sent();
+                    exports.operatorKEY = _b.sent();
                     _b.label = 4;
-                case 4: return [4 /*yield*/, exports.connection.getBalance(exports.operator.publicKey)];
+                case 4: return [4 /*yield*/, exports.connection.getBalance(exports.operatorKEY.publicKey)];
                 case 5:
                     lamports = _b.sent();
                     if (lamports < fees) {
                         // If current balance is not enough to pay for fees, request an airdrop
                         console.log("! Unfortunately you do not have enough SOL to initialize an account.\n", "  You need ".concat(fees / web3_js_1.LAMPORTS_PER_SOL, " SOL to initialize account."));
                     }
-                    console.log(". Operator account is:\t", exports.operator.publicKey.toBase58(), "containing", lamports / web3_js_1.LAMPORTS_PER_SOL, "SOL to pay for fees");
+                    console.log(". Operator account is:\t", exports.operatorKEY.publicKey.toBase58(), "containing", lamports / web3_js_1.LAMPORTS_PER_SOL, "SOL to pay for fees");
                     return [2 /*return*/];
             }
         });
@@ -212,7 +408,7 @@ function establishOperator() {
 }
 exports.establishOperator = establishOperator;
 /**
- * setup operator as Keypair
+ * setup operatorKEY as Keypair
  **/
 function getOperator() {
     return __awaiter(this, void 0, void 0, function () {

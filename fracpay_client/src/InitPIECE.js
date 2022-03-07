@@ -1,10 +1,10 @@
 "use strict";
 /****************************************************************
- * Fracpay client InitMAIN					*
+ * Fracpay client InitPIECE					*
  * blairmunroakusa@.0322.anch.AK				*
  *								*
- * InitMAIN creates a new operator.				*
- * One each of MAIN, self PIECE, self REF accounts are created.	*
+ * InitPIECE creates a new piece.				*
+ * One each of PIECE, self REF accounts are created.		*
  ****************************************************************/
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -46,92 +46,74 @@ exports.__esModule = true;
 /****************************************************************
  * imports							*
  ****************************************************************/
-//import * as BufferLayout from "buffer-layout";
-//import * as fs from "fs";
+var BufferLayout = require("buffer-layout");
 var lodash = require("lodash");
-var prompt = require("prompt-sync")({ sigint: true });
+var BigNumber = require("bignumber.js");
+//import * as Base58 from "base-58";
 var web3_js_1 = require("@solana/web3.js");
-var bs58 = require("bs58");
 var utils_1 = require("./utils");
 var utils_2 = require("./utils");
-require("trace");
-var Base58 = require("base-58");
-Error.stackTraceLimit = Infinity;
 /****************************************************************
  * main								*
  ****************************************************************/
-var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var operatorID, operatorIDcheck, countPIECE, countREF, _a, pdaMAIN, bumpMAIN, countPIECElow, countPIECEhigh, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, countREFlow, countREFhigh, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitMAINtx, _d, _e, _f, _g;
+var InitPIECE = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var operatorID, PIECEslug, _a, pdaMAIN, bumpMAIN, MAIN, countPIECE, pdaPIECEseed, _b, pdaPIECE, bumpPIECE, countREF, pdaREFseed, _c, pdaREF, bumpREF, ixDATA, InitPIECEtx, _d, _e, _f, _g;
     return __generator(this, function (_h) {
         switch (_h.label) {
             case 0:
                 _h.trys.push([0, 9, , 10]);
-                operatorID = prompt("Please enter your operator ID:");
-                return [4 /*yield*/, utils_2.connection.getParsedProgramAccounts(utils_2.fracpayID, {
-                        filters: [
-                            {
-                                dataSize: utils_2.PIECE_SIZE
-                            },
-                            {
-                                memcmp: {
-                                    offset: utils_2.PIECE_SIZE - utils_2.PIECESLUG_SIZE,
-                                    bytes: bs58.encode((0, utils_1.toUTF8Array)(operatorID))
-                                }
-                            },
-                        ]
-                    })];
-            case 1:
-                operatorIDcheck = _h.sent();
-                if (!lodash.isEqual(operatorIDcheck, [])) {
-                    console.log("! The operator ID '".concat(operatorID, "' already has a MAIN account associated with it.\n"), " Choose a different ID for your operator MAIN account.");
-                    process.exit(1);
-                }
-                countPIECE = new Uint16Array(1);
-                countPIECE[0] = 0;
-                countREF = new Uint16Array(1);
-                countREF[0] = 0;
                 // setup
                 return [4 /*yield*/, (0, utils_1.establishConnection)()];
-            case 2:
+            case 1:
                 // setup
                 _h.sent();
                 return [4 /*yield*/, (0, utils_1.establishOperator)()];
-            case 3:
+            case 2:
                 _h.sent();
                 return [4 /*yield*/, (0, utils_1.checkProgram)()];
-            case 4:
+            case 3:
                 _h.sent();
-                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([new Uint8Array((0, utils_1.toUTF8Array)(operatorID))], utils_2.fracpayID)];
-            case 5:
+                operatorID = prompt("Please enter your operator ID: ");
+                PIECEslug = prompt("Please enter the name for your piece: ");
+                // check to make sure slug is right size
+                if ((0, utils_1.toUTF8Array)(PIECEslug).length > utils_2.PIECESLUG_SIZE) {
+                    console.log("! Memory limitations require piece IDs shorter than 63 Bytes (63 standard characters).\n", " You chose an ID that exceeds this limit. Please try a smaller ID.");
+                    process.exit(1);
+                }
+                return [4 /*yield*/, (0, utils_1.deriveAddress)((0, utils_1.toUTF8Array)(operatorID))];
+            case 4:
                 _a = _h.sent(), pdaMAIN = _a[0], bumpMAIN = _a[1];
-                console.log(". MAIN pda:\t\t".concat(pdaMAIN.toBase58(), " found after ").concat(256 - bumpMAIN, " tries"));
-                countPIECElow = countPIECE[0] & 0xFF;
-                countPIECEhigh = (countPIECE[0] >> 8) & 0xFF;
-                pdaPIECEseed = (0, utils_1.toUTF8Array)(pdaMAIN
-                    .toString()
-                    .slice(0, utils_2.PUBKEY_SIZE - utils_2.COUNT_SIZE))
-                    .concat(countPIECEhigh, countPIECElow);
-                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([new Uint8Array(pdaPIECEseed)], utils_2.fracpayID)];
+                console.log(". Operator MAIN pda:\t".concat(pdaMAIN.toBase58(), " found after ").concat(256 - bumpMAIN, " tries"));
+                return [4 /*yield*/, (0, utils_1.getMAINdata)(pdaMAIN)];
+            case 5:
+                MAIN = _h.sent();
+                // check to make sure operator has right account
+                if (!lodash.isEqual(utils_2.operatorKEY.publicKey, MAIN.operator)) {
+                    console.log("! You don't have the right wallet to add pieces to this account.", " Check to see if you have the right Operator ID, or wallet pubkey.");
+                    process.exit(1);
+                }
+                countPIECE = new Uint16Array(1);
+                countPIECE[0] = MAIN.piececount + 1;
+                console.log(". This will be PIECE number ".concat(countPIECE[0], "."));
+                pdaPIECEseed = (0, utils_1.createSeed)(pdaMAIN, countPIECE);
+                return [4 /*yield*/, (0, utils_1.deriveAddress)(pdaPIECEseed)];
             case 6:
                 _b = _h.sent(), pdaPIECE = _b[0], bumpPIECE = _b[1];
-                console.log(". Self PIECE pda:\t".concat(pdaPIECE.toBase58(), " found after ").concat(256 - bumpPIECE, " tries"));
-                countREFlow = countREF[0] & 0xFF;
-                countREFhigh = (countREF[0] >> 8) & 0xFF;
-                pdaREFseed = (0, utils_1.toUTF8Array)(pdaPIECE
-                    .toString()
-                    .slice(0, utils_2.PUBKEY_SIZE - utils_2.COUNT_SIZE))
-                    .concat(countREFhigh, countREFlow);
-                return [4 /*yield*/, web3_js_1.PublicKey.findProgramAddress([Buffer.from(new Uint8Array(pdaREFseed))], utils_2.fracpayID)];
+                console.log(". New PIECE pda:\t".concat(pdaPIECE.toBase58(), " found after ").concat(256 - bumpPIECE, " tries"));
+                countREF = new Uint16Array(1);
+                countREF[0] = 0;
+                pdaREFseed = (0, utils_1.createSeed)(pdaPIECE, countREF);
+                return [4 /*yield*/, (0, utils_1.deriveAddress)(pdaREFseed)];
             case 7:
                 _c = _h.sent(), pdaREF = _c[0], bumpREF = _c[1];
-                console.log(". Self REF pda:\t\t".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
-                ixDATA = [0, bumpMAIN, bumpPIECE, bumpREF]
+                console.log(". New PIECE self-REF:\t".concat(pdaREF.toBase58(), " found after ").concat(256 - bumpREF, " tries"));
+                ixDATA = [1, bumpPIECE, bumpREF]
                     .concat(pdaREFseed)
                     .concat(pdaPIECEseed)
-                    .concat((0, utils_1.toUTF8Array)(operatorID));
-                InitMAINtx = new web3_js_1.Transaction().add(new web3_js_1.TransactionInstruction({
+                    .concat((0, utils_1.toUTF8Array)(PIECEslug));
+                InitPIECEtx = new web3_js_1.Transaction().add(new web3_js_1.TransactionInstruction({
                     keys: [
-                        { pubkey: utils_2.operator.publicKey, isSigner: true, isWritable: true },
+                        { pubkey: utils_2.operatorKEY.publicKey, isSigner: true, isWritable: true },
                         { pubkey: web3_js_1.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
                         { pubkey: pdaMAIN, isSigner: false, isWritable: true },
                         { pubkey: pdaPIECE, isSigner: false, isWritable: true },
@@ -144,7 +126,7 @@ var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function (
                 // send transaction
                 _e = (_d = console).log;
                 _f = "txhash: ".concat;
-                return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(utils_2.connection, InitMAINtx, [utils_2.operator])];
+                return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(utils_2.connection, InitPIECEtx, [utils_2.operatorKEY])];
             case 8:
                 // send transaction
                 _e.apply(_d, [_f.apply("txhash: ", [_h.sent()])]);
@@ -152,9 +134,10 @@ var InitMAIN = function () { return __awaiter(void 0, void 0, void 0, function (
             case 9:
                 _g = _h.sent();
                 console.log(Error);
+                console.log(Error.prototype.stack);
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
     });
 }); };
-InitMAIN();
+InitPIECE();
