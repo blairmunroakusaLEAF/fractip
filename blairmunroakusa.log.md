@@ -1,6 +1,9 @@
 # LOG
 ```
-
+blairmunroakusa@0753.030722.anch.AK:goldcouch
+. CreateREF, CreatePIECE, CreateMAIN complete
+. cleaned up + wrote tx function
+. InitREF work
 . update gh
 blairmunroakusa@0606.030722.anch.AK:goldcouch
 ```

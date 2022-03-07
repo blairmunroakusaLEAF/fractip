@@ -12,6 +12,7 @@ import {
   Connection,
   PublicKey,
   LAMPORTS_PER_SOL,
+  SYSVAR_RENT_PUBKEY,
   SystemProgram,
   TransactionInstruction,
   Transaction,
@@ -73,6 +74,34 @@ export const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
 /****************************************************************
  * general functions						*
  ****************************************************************/
+
+/**
+* general transaction
+**/
+
+export function generalTX(
+	pdaMAIN: PublicKey,
+	pdaPIECE: PublicKey,
+	pdaREF: PublicKey,
+	ixDATA: any[]) {
+
+	// setup transaction
+	return new Transaction().add(
+		new TransactionInstruction({
+			keys: [
+				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
+				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
+				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
+				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
+				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
+			],
+			data: Buffer.from(new Uint8Array(ixDATA)),
+			programId: fracpayID,
+		})
+	);
+}
+
 /**
 * get PIECE list
 **/

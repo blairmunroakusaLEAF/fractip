@@ -1,8 +1,8 @@
 /****************************************************************
- * Fracpay client InitPIECE					*	
+ * Fracpay client CreatePIECE					*	
  * blairmunroakusa@.0322.anch.AK				*
  *								*
- * InitPIECE creates a new piece.				*
+ * CreatePIECE creates a new piece.				*
  * One each of PIECE, self REF accounts are created.		*
  ****************************************************************/
 
@@ -10,18 +10,18 @@
  * imports							*
  ****************************************************************/
 
+// misc packages
 const prompt = require("prompt-sync")({sigint: true});
 const lodash = require("lodash");
 
+// misc solana
 import {
-	SystemProgram,
-	SYSVAR_RENT_PUBKEY,
-  	Transaction,
-  	TransactionInstruction,
   	sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
+// utility functions
 import {
+	generalTX,
 	createSeed,
 	deriveAddress,
 	getMAINdata,
@@ -31,8 +31,8 @@ import {
 	toUTF8Array,
 } from "./utils";
 
+// utility constants
 import {
-	fracpayID,
 	connection,
 	operatorKEY,
 	PIECESLUG_SIZE,
@@ -42,7 +42,7 @@ import {
  * main								*
  ****************************************************************/
 
-const InitPIECE = async () => {
+const CreatePIECE = async () => {
 	
 	try {
 	
@@ -59,7 +59,7 @@ const InitPIECE = async () => {
 	console.log(`. Operator MAIN pda:\t${pdaMAIN.toBase58()} found after ${256 - bumpMAIN} tries`);
 	
 	// get MAIN account data
-	var MAIN = await getMAINdata(pdaMAIN);
+	const MAIN = await getMAINdata(pdaMAIN);
 	
 	// check to make sure operator has right account
 	if (!lodash.isEqual(operatorKEY.publicKey, MAIN.operator)) {
@@ -73,13 +73,13 @@ const InitPIECE = async () => {
 	
 	// check to make sure slug is right size
 	if (toUTF8Array(PIECEslug).length > PIECESLUG_SIZE) {
-		console.log(`! Memory limitations require piece IDs shorter than 63 Bytes (63 standard characters).\n`,
+		console.log(`! Memory limitations require piece IDs shorter than 63 Bytes (ie 63 standard characters).\n`,
 			    ` You chose an ID that exceeds this limit. Please try a smaller ID.`);
 		process.exit(1);
 	}
 
 	// set new piece count
-	var countPIECE = new Uint16Array(1);
+	const countPIECE = new Uint16Array(1);
 	countPIECE[0] = MAIN.piececount + 1;
 	console.log(`. This will be PIECE number ${countPIECE[0]}.`);
 
@@ -98,29 +98,20 @@ const InitPIECE = async () => {
 	console.log(`. New PIECE self-REF:\t${pdaREF.toBase58()} found after ${256 - bumpREF} tries`);
 
 	// setup instruction data
-	var ixDATA = [1, bumpPIECE, bumpREF]
+	const ixDATA = [1, bumpPIECE, bumpREF]
 		.concat(pdaREFseed)
 		.concat(pdaPIECEseed)
 		.concat(toUTF8Array(PIECEslug));
 
-	// setup transaction
-	let InitPIECEtx = new Transaction().add(
-		new TransactionInstruction({
-			keys: [
-				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
-				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
-				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
-				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
-				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
-				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
-			],
-			data: Buffer.from(new Uint8Array(ixDATA)),
-			programId: fracpayID,
-		})
-	);
+	// prepare transaction
+	const CreatePIECEtx = generalTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
 
 	// send transaction
-	console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitPIECEtx, [operatorKEY] )}`);
+	console.log(`txhash: ${await sendAndConfirmTransaction(connection, CreatePIECEtx, [operatorKEY] )}`);
+	
+	// confirmation
+	console.log(`\n* Successfully created new PIECE account called '${PIECEslug}' for operator '${operatorID}'!\n`);
+
 
 	} catch {
 		console.log(Error);
@@ -128,4 +119,4 @@ const InitPIECE = async () => {
 	}
 };
 
-InitPIECE();
+CreatePIECE();

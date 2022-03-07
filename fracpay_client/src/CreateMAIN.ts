@@ -1,8 +1,8 @@
 /****************************************************************
- * Fracpay client InitMAIN					*	
+ * Fracpay client CreateMAIN					*	
  * blairmunroakusa@.0322.anch.AK				*
  *								*
- * InitMAIN creates a new operator.				*
+ * CreateMAIN creates a new operator.				*
  * One each of MAIN, self PIECE, self REF accounts are created.	*
  ****************************************************************/
 
@@ -10,17 +10,17 @@
  * imports							*
  ****************************************************************/
 
+// misc packages
 const prompt = require("prompt-sync")({sigint: true});
 
+// misc solana
 import {
-	SystemProgram,
-  	SYSVAR_RENT_PUBKEY,
-  	Transaction,
-  	TransactionInstruction,
   	sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
+// utility functions
 import {
+	generalTX,
 	deriveAddress,
 	availableIDcheck,
 	establishConnection,
@@ -30,9 +30,9 @@ import {
 	createSeed,
 } from "./utils";
 
+// utility constants
 import {
 	PIECESLUG_SIZE,
-	fracpayID,
 	connection,
 	operatorKEY,
 } from "./utils";
@@ -41,7 +41,7 @@ import {
  * main								*
  ****************************************************************/
 
-const InitMAIN = async () => {
+const CreateMAIN = async () => {
 	
 	try {
 	
@@ -55,7 +55,7 @@ const InitMAIN = async () => {
 
 	// check to make sure ID is right size
 	if (toUTF8Array(operatorID).length > PIECESLUG_SIZE) {
-		console.log(`! Memory limitations require operator IDs shorter than 63 Bytes (63 standard characters).\n`,
+		console.log(`! Memory limitations require operator IDs shorter than 63 Bytes (ie 63 standard characters).\n`,
 			    ` You chose an ID that exceeds this limit. Please try a smaller ID.`);
 		process.exit(1);
 	}
@@ -64,8 +64,8 @@ const InitMAIN = async () => {
 	await availableIDcheck(operatorID);
 
 	// initial count values are 0
-	var countPIECE = new Uint16Array(1);
-	var countREF = new Uint16Array(1);
+	const countPIECE = new Uint16Array(1);
+	const countREF = new Uint16Array(1);
 	countPIECE[0] = 0;
 	countREF[0] = 0;
 
@@ -89,24 +89,14 @@ const InitMAIN = async () => {
 		.concat(pdaPIECEseed)
 		.concat(toUTF8Array(operatorID));
 
-	// setup transaction
-	const InitMAINtx = new Transaction().add(
-		new TransactionInstruction({
-			keys: [
-				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
-				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
-				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
-				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
-				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
-				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
-			],
-			data: Buffer.from(new Uint8Array(ixDATA)),
-			programId: fracpayID,
-		})
-	);
+	// prepare transaction
+	const CreateMAINtx = generalTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
        
 	// send transaction
-	console.log(`txhash: ${await sendAndConfirmTransaction(connection, InitMAINtx, [operatorKEY], )}`);
+	console.log(`txhash: ${await sendAndConfirmTransaction(connection, CreateMAINtx, [operatorKEY], )}`);
+	
+	// confirmation
+	console.log(`\n* Successfully created new MAIN account for operator '${operatorID}'!\n`);
 
 	} catch {
 
@@ -115,5 +105,5 @@ const InitMAIN = async () => {
 	}
 };
 
-InitMAIN();
+CreateMAIN();
 

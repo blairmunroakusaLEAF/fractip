@@ -140,10 +140,18 @@ impl Processor {
         let pdaPIECE = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is authorized PIECE operator
-        let pdaPIECEdata = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
-        if pdaPIECEdata.operator != *operator.key {
+        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
+        if PIECEinfo.operator != *operator.key {
             msg!("Operator doesn't control PIECE.");
             return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        // make sure seed is correct count number
+        let numbertag = &seedREF[30..];
+        let REFnumber = ((numbertag[0] as u16) << 8) | numbertag[1] as u16;
+        if PIECEinfo.refcount != (REFnumber - 1) {
+            msg!{"This REF pda is out of order."}
+            return Err(FracpayError::AccountCreationAttemptError.into());
         }
 
         // account #5
@@ -168,6 +176,11 @@ impl Processor {
         &[&[&seedREF, &[bumpREF]]]
         )?;
         msg!("Successfully created pdaREF");
+
+
+        // update REF count
+        PIECEinfo.refcount = REFnumber;
+        PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
 
         // initialize REF account data
 
@@ -294,7 +307,7 @@ impl Processor {
         )?;
         msg!("Successfully created pdaREFself");
 
-        // update MAIN count
+        // update PIECE count
         MAINinfo.piececount = PIECEnumber;
         MAIN::pack(MAINinfo, &mut pdaMAIN.try_borrow_mut_data()?)?;
 
