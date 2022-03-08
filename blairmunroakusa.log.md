@@ -1,5 +1,8 @@
 # LOG
 ```
+
+. squeezing out magic numbers from state/unpack.rs
+blairmunroakusa@1545.030722.anch.AK:redcouch
 . restructuring server
 blairmunroakusa@0753.030722.anch.AK:goldcouch
 . CreateREF, CreatePIECE, CreateMAIN complete

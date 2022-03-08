@@ -4,19 +4,18 @@
  ****************************************************************/
 
 use solana_program::{
-    entrypoint,
     account_info::AccountInfo,
     entrypoint::ProgramResult,
     pubkey::Pubkey,
+    entrypoint,
 };
-
 use crate::processor::run::Processor;
 
 entrypoint!(process_instruction);
-fn process_instruction(
+fn process_instruction<'a>(
     program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    accounts: &'a [AccountInfo<'a>],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    Processor::process(program_id, accounts, instruction_data)
+    Processor::run_process(program_id, accounts, instruction_data)
 }

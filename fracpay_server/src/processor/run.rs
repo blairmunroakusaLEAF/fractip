@@ -5,12 +5,12 @@
 
 #![allow(non_snake_case)]
 use solana_program::{
-        msg,
+        entrypoint::ProgramResult,
+        pubkey::Pubkey,
         account_info::{
             AccountInfo
         },
-        entrypoint::ProgramResult,
-        pubkey::Pubkey,
+        msg,
     };
 use crate::instruction::data::*;
 
@@ -18,9 +18,9 @@ pub struct Processor;
 
 impl Processor {
 
-    pub fn process(
+    pub fn run_process<'a>(
         program_id: &Pubkey,
-        accounts: &[AccountInfo],
+        accounts: &'a [AccountInfo<'a>],
         instruction_data: &[u8],
     ) -> ProgramResult {
 

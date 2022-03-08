@@ -4,7 +4,7 @@
  ****************************************************************/
 
 pub mod run;
-pub mod createmain;
-pub mod createpiece;
-pub mod createref;
+pub mod createMAIN;
+pub mod createPIECE;
+pub mod createREF;
 pub mod utility;

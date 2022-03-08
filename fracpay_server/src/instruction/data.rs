@@ -1,6 +1,6 @@
 /****************************************************************
- * Fracpay server instruction enum                     			*
- * blairmunroakusa@.0322.anch.AK			                	*
+ * Fracpay server instruction enum         
+ * blairmunroakusa@.0322.anch.AK		
  ****************************************************************/
 
 #![allow(non_snake_case)]
