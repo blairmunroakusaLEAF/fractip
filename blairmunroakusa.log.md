@@ -1,7 +1,18 @@
 # LOG
 ```
 
-. squeezing out magic numbers from state/unpack.rs
+blairmunroakusa@0926.030822.anch.AK:goldcouch
+. created verbose TreePIECE list function
+. created TreePIECE list function
+. created printREF function
+. verified flags
+. created flags unpack
+. created ListREF
+blairmunroakusa@0618.030822.anch.AK:goldcouch
+```
+```
+blairmunroakusa@2115.030722.anch.AK:redcouch
+. squeezing out magic numbers from instruction/unpack.rs
 blairmunroakusa@1545.030722.anch.AK:redcouch
 . restructuring server
 blairmunroakusa@0753.030722.anch.AK:goldcouch

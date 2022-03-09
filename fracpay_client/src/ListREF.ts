@@ -14,6 +14,8 @@ const prompt = require("prompt-sync")({sigint: true});
 
 import {
 	unpackFlags,
+	printPIECElist,
+	getREFdata,
 	deriveAddress,
 	createSeed,
 	establishConnection,
@@ -28,7 +30,7 @@ import {
  * main								*
  ****************************************************************/
 
-const ListPIECE = async () => {
+const ListREF = async () => {
 	
 	try {
 	
@@ -51,54 +53,74 @@ const ListPIECE = async () => {
 	console.log(`. Listing ${MAIN.piececount} pieces associated with '${operatorID}' MAIN account.\n`,
 		    `\nPIECE\n`);
 	
-	// initialize piece counter
-	var countPIECE = new Uint16Array(1);
-	countPIECE[0] = 0;
+	// print PIECE list
+	await printPIECElist(pdaMAIN, MAIN.piececount);
 
-	// find self PIECE address
-	var pdaPIECEseed = createSeed(pdaMAIN, countPIECE);
-	var [pdaPIECE, bumpPIECE] = await deriveAddress(pdaPIECEseed);
+	// get PIECE selection
+	var selectPIECE = new Uint16Array(1);
+	selectPIECE[0] = parseInt(prompt("From the PIECE list, please enter # to list REFs for: "));
 
-	// get self PIECE data
+	// check PIECE selection input
+	if (selectPIECE[0] < 0 || selectPIECE[0] > MAIN.piececount) {
+		console.log(`! You made an invalid selection. Type in a number, nothing else.`);
+		process.exit(1);
+	}
+	// get selected PIECE data
+	const pdaPIECEseed = createSeed(pdaMAIN, selectPIECE);
+	const [pdaPIECE, bumpPIECE] = await deriveAddress(pdaPIECEseed);
 	var PIECE = await getPIECEdata(pdaPIECE);
 
+	// state intention
+	console.log(`. Listing ${PIECE.refcount} REFs associated with '${PIECE.pieceslug}' PIECE account.\n`,
+		    `\nREF\n`);
+
+	// initialize ref counter
+	var countREF = new Uint16Array(1);
+	countREF[0] = 0;
+
+	// find self REF address
+	var pdaREFseed = createSeed(pdaPIECE, countREF);
+	var [pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
+
+	// get self PIECE data
+	var REF = await getREFdata(pdaREF);
+
 	// get flags
-	var flags = unpackFlags(PIECE.flags);
+	var flags = unpackFlags(REF.flags);
 
 	// print self PIECE data
-	console.log(`# 0\tOPERATOR:\t${PIECE.pieceslug}\n`,
-		    `\tBALANCE:\t${PIECE.balance}\n`,
-		    `\tNETSUM:\t\t${PIECE.netsum}\n`,
-		    `\tREF COUNT:\t${PIECE.refcount}`);
+	console.log(`# 0\tSELF:\t\t${REF.refslug}\n`,
+		    `\tFRACTION:\t${REF.fract/1000000}\n`,
+		    `\tNETSUM:\t\t${REF.netsum}`);
 	process.stdout.write(`\tFLAGS:\t\t`);
 	for (var index = 0; index < 16; index++) {
 		process.stdout.write(`${flags[index]}  `);
 	}
 	process.stdout.write(`\n\n`);
-
+	
 	// cycle through all pieces
-	for (countPIECE[0] = 1; countPIECE[0] <= MAIN.piececount; countPIECE[0]++) {
+	for (countREF[0] = 1; countREF[0] <= PIECE.refcount; countREF[0]++) {
 
-		// find PIECE address
-		pdaPIECEseed = createSeed(pdaMAIN, countPIECE);
-		[pdaPIECE, bumpPIECE] = await deriveAddress(pdaPIECEseed);
+		// find REF address
+		pdaREFseed = createSeed(pdaPIECE, countREF);
+		[pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
 
-		// get PIECE data
-		PIECE = await getPIECEdata(pdaPIECE);
-
+		// get REF data
+		REF = await getREFdata(pdaREF);
+		
 		// get flags
-		flags = unpackFlags(PIECE.flags);
+		var flags = unpackFlags(REF.flags);
 
-		// print PIECE data
-		console.log(`# ${countPIECE[0]}\tPIECE ID:\t${PIECE.pieceslug}\n`,
-			    `\tBALANCE:\t${PIECE.balance}\n`,
-			    `\tNETSUM:\t\t${PIECE.netsum}\n`,
-			    `\tREF COUNT:\t${PIECE.refcount}`);
+		// print REF data
+		console.log(`# ${countREF[0]}\tREF ID:\t\t${REF.refslug}\n`,
+			    `\tFRACTION:\t${REF.fract/1000000}\n`,
+			    `\tNETSUM:\t\t${REF.netsum}`);
 		process.stdout.write(`\tFLAGS:\t\t`);
 		for (var index = 0; index < 16; index++) {
 			process.stdout.write(`${flags[index]}  `);
 		}
 		process.stdout.write(`\n\n`);
+
 	}
 
 	} catch {
@@ -106,5 +128,6 @@ const ListPIECE = async () => {
 	}
 };
 
-ListPIECE();
+ListREF();
+
 

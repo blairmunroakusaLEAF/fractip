@@ -103,6 +103,125 @@ export function generalTX(
 }
 
 /**
+* print verbose REF list, no flags
+**/
+export async function verboseREFlist(pdaPIECE: PublicKey, count: number) {
+
+	// initialize piece counter
+	var countREF = new Uint16Array(1);
+	countREF[0] = 0;
+
+	// find self REF address
+	var pdaREFseed = createSeed(pdaPIECE, countREF);
+	var [pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
+
+	// get self PIECE data
+	var REF = await getREFdata(pdaREF);
+
+	// get flags
+	var flags = unpackFlags(REF.flags);
+
+	// print self PIECE data
+	console.log(`\t. 0\t| SELF: --------> ${REF.refslug}`);
+	console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
+	console.log(`\t\t| FRACTION: ----> ${REF.fract}`);
+	console.log(`\t\t| NETSUM: ------> ${REF.netsum}`);
+	process.stdout.write(`\t\t| FLAGS: -------> `);
+	process.stdout.write(`[ `);
+	for (var index = 0; index < 4; index++) {
+		process.stdout.write(`${flags[index]} `);
+	}
+	process.stdout.write(`| `);
+	for (var index = 4; index < 8; index++) {
+		process.stdout.write(`${flags[index]} `);
+	}
+	process.stdout.write(`| `);
+	for (var index = 8; index < 12; index++) {
+		process.stdout.write(`${flags[index]} `);
+	}
+	process.stdout.write(`| `);
+	for (var index = 12; index < 16; index++) {
+		process.stdout.write(`${flags[index]} `);
+	}
+	process.stdout.write(`]`);
+		process.stdout.write(`\n\n`);
+
+	// cycle through all pieces
+	for (countREF[0] = 1; countREF[0] <= count; countREF[0]++) {
+
+		// find PIECE address
+		pdaREFseed = createSeed(pdaPIECE, countREF);
+		[pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
+
+		// get PIECE data
+		REF = await getREFdata(pdaREF);
+
+		// get flags
+		flags = unpackFlags(REF.flags);
+
+		// print PIECE data
+		console.log(`\t. ${countREF[0]}\t| REF ID: ------> ${REF.refslug}`);
+		console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
+		console.log(`\t\t| FRACTION: ----> ${REF.fract}`);
+		console.log(`\t\t| NETSUM: ------> ${REF.netsum}`);
+		process.stdout.write(`\t\t| FLAGS: -------> `);
+		process.stdout.write(`[ `);
+		for (var index = 0; index < 4; index++) {
+			process.stdout.write(`${flags[index]} `);
+		}
+		process.stdout.write(`| `);
+		for (var index = 4; index < 8; index++) {
+			process.stdout.write(`${flags[index]} `);
+		}
+		process.stdout.write(`| `);
+		for (var index = 8; index < 12; index++) {
+			process.stdout.write(`${flags[index]} `);
+		}
+		process.stdout.write(`| `);
+		for (var index = 12; index < 16; index++) {
+			process.stdout.write(`${flags[index]} `);
+		}
+		process.stdout.write(`]`);
+		process.stdout.write(`\n\n`);
+	}	
+}
+
+/**
+* print REF list
+**/
+export async function printREFlist(pdaPIECE: PublicKey, count: number) {
+
+	// initialize piece counter
+	var countREF = new Uint16Array(1);
+	countREF[0] = 0;
+
+	// find self REF address
+	var pdaREFseed = createSeed(pdaPIECE, countREF);
+	var [pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
+
+	// get self PIECE data
+	var REF = await getREFdata(pdaREF);
+
+	// print self PIECE data
+	console.log(`\t- 0\tSELF:\t${REF.refslug}`);
+
+	// cycle through all pieces
+	for (countREF[0] = 1; countREF[0] <= count; countREF[0]++) {
+
+		// find PIECE address
+		pdaREFseed = createSeed(pdaPIECE, countREF);
+		[pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
+
+		// get PIECE data
+		REF = await getREFdata(pdaREF);
+
+		// print PIECE data
+		console.log(`\t- ${countREF[0]}\tREF ID:\t${REF.refslug}`);
+	}	
+	console.log("");
+}
+
+/**
 * get PIECE list
 **/
 export async function printPIECElist(pdaMAIN: PublicKey, count: number) {
@@ -205,6 +324,23 @@ export async function getREFdata(pdaREF: PublicKey) {
 
 	}
 }
+
+/**
+* unpack flags
+**/
+export function unpackFlags(flags: number) {
+	const highflags = flags >> 8;
+	const lowflags = flags & 0xFF;
+	var bitarray = new Uint8Array(16);
+	for (var index = 0; index < 8; index++) {
+		bitarray[index] = (highflags >> (7 - index)) & 0x01;
+	}
+	for (index = 0; index < 8; index++) {
+		bitarray[8 + index] = (lowflags >> (7 - index)) & 0x01;
+	}
+	return bitarray
+}
+
 /**
 * create pda seed
 **/
