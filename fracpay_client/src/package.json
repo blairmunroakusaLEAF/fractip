@@ -5,6 +5,8 @@
     "big-number": "^2.0.0",
     "bignumber": "^1.1.0",
     "bs58": "^5.0.0",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.1.1",
     "fs": "^0.0.1-security",
     "lodash": "^4.17.21",
     "mz": "^2.7.0",

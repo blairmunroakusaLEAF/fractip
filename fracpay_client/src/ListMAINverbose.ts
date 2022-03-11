@@ -1,13 +1,13 @@
 /****************************************************************
- * Fracpay client ListPIECE					*	
- * blairmunroakusa@.0322.anch.AK				*
- *								*
- * List PIECE lists all pieces linked to MAIN account.		*
- * Pieces are listed numbered to make CLI piece selection easy.	*
+ * Fracpay client ListMAINverbose
+ * blairmunroakusa@.0322.anch.AK
+ *			
+ * Lists all accounts created under a specific MAIN account.	
+ * Pieces are listed numbered to make CLI piece selection easy.	
  ****************************************************************/
 
 /****************************************************************
- * imports							*
+ * imports							
  ****************************************************************/
 
 const prompt = require("prompt-sync")({sigint: true});
@@ -28,10 +28,10 @@ import {
 } from "./utils";
 
 /****************************************************************
- * main								*
+ * main								
  ****************************************************************/
 
-const TreePIECEverbose = async () => {
+const ListMAINverbose = async () => {
 	
 	try {
 	
@@ -67,7 +67,9 @@ const TreePIECEverbose = async () => {
 	var flags = unpackFlags(PIECE.flags);
 
 	// print self PIECE data
-	console.log(`# 0\t| OPERATOR: ----> ${PIECE.pieceslug}`);
+	console.log(`# 0\t| OPERATOR ID: -> ${PIECE.pieceslug}`);
+	console.log(`\t| ADDRESS: -----> ${pdaPIECE.toBase58()}`);
+	console.log(`\t| OPERATOR: ----> ${PIECE.operator}`);
 	console.log(`\t| BALANCE: -----> ${PIECE.balance}`);
 	console.log(`\t| NETSUM: ------> ${PIECE.netsum}`);
 	process.stdout.write(`\t| FLAGS: -------> `);
@@ -108,6 +110,8 @@ const TreePIECEverbose = async () => {
 
 		// print PIECE data
 		console.log(`# ${countPIECE[0]}\t| PIECE ID: ----> ${PIECE.pieceslug}`);
+		console.log(`\t| ADDRESS: -----> ${pdaPIECE.toBase58()}`);
+		console.log(`\t| OPERATOR: ----> ${PIECE.operator}`);
 		console.log(`\t| BALANCE: -----> ${PIECE.balance}`);
 		console.log(`\t| NETSUM: ------> ${PIECE.netsum}`);
 		process.stdout.write(`\t| FLAGS: -------> `);
@@ -141,7 +145,7 @@ const TreePIECEverbose = async () => {
 	}
 };
 
-TreePIECEverbose();
+ListMAINverbose();
 
 
 

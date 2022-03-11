@@ -1,13 +1,13 @@
 /****************************************************************
- * Fracpay client ListPIECE					*	
- * blairmunroakusa@.0322.anch.AK				*
- *								*
- * List PIECE lists all pieces linked to MAIN account.		*
- * Pieces are listed numbered to make CLI piece selection easy.	*
+ * Fracpay client ListMAINterse						
+ * blairmunroakusa@.0322.anch.AK				
+ *								
+ * Lists all accounts under a specific MAIN account.		
+ * Pieces are listed numbered to make CLI piece selection easy.	
  ****************************************************************/
 
 /****************************************************************
- * imports							*
+ * imports							
  ****************************************************************/
 
 const prompt = require("prompt-sync")({sigint: true});
@@ -27,10 +27,10 @@ import {
 } from "./utils";
 
 /****************************************************************
- * main								*
+ * main								
  ****************************************************************/
 
-const TreePIECE = async () => {
+const ListMAINterse = async () => {
 	
 	try {
 	
@@ -80,7 +80,7 @@ const TreePIECE = async () => {
 
 
 		// print PIECE data
-		console.log(`# ${countPIECE[0]}\tPIECE ID: ----> ${PIECE.pieceslug}`);
+		console.log(`# ${countPIECE[0]}\tPIECE ID:\t${PIECE.pieceslug}`);
 
 		// print operator refs
 		await printREFlist(pdaPIECE, PIECE.refcount);
@@ -92,7 +92,7 @@ const TreePIECE = async () => {
 	}
 };
 
-TreePIECE();
+ListMAINterse();
 
 
 

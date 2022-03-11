@@ -35,6 +35,20 @@ pub enum FracpayInstruction {
         seedREF: Vec<u8>,
         REFslug: Vec<u8>,
     },
+
+    // instruction to initialize piece account
+    InitPIECE {
+
+        invite: u8,
+    },
+
+    // instruction to initialize ref account
+    InitREF {
+
+        invite: u8,
+        selfseed: u8,
+        fract: u32,
+    },
 }
 
 

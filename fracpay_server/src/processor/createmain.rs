@@ -11,6 +11,10 @@ use solana_program::{
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
+        sysvar::{
+            rent::Rent,
+            Sysvar,
+        },
         system_instruction,
         msg,
     };
@@ -50,9 +54,12 @@ impl Processor {
         }
 
         // calculate rent
-        let rentMAIN = rent.minimum_balance(SIZE_MAIN.into());
-        let rentPIECE = rent.minimum_balance(SIZE_PIECE.into());
-        let rentREF = rent.minimum_balance(SIZE_REF.into());
+        let rentMAIN = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_MAIN.into());
+        let rentPIECE = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_PIECE.into());
+        let rentREF = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_REF.into());
        
         // create pdaMAIN
         invoke_signed(
@@ -109,14 +116,15 @@ impl Processor {
         let mut MAINinfo = MAIN::unpack_unchecked(&pda.MAIN.try_borrow_data()?)?;
 
         // set flags
-        let mut FLAGS = BitVec::from_elem(16, false);
-        FLAGS.set(0, false); // MAIN account is 0000
-        FLAGS.set(1, false);
-        FLAGS.set(2, false); 
-        FLAGS.set(3, false); 
+        let mut flags = BitVec::from_elem(16, false);
+        flags.set(0, false); // MAIN account is 0000
+        flags.set(1, false);
+        flags.set(2, false); 
+        flags.set(3, false); 
+        flags.set(4, true);  // MAIN is initialized by default
 
         // initialize MAIN account data
-        MAINinfo.flags = pack_flags(FLAGS);
+        MAINinfo.flags = pack_flags(flags);
         MAINinfo.operator = *operator.key;
         MAINinfo.balance = 0;
         MAINinfo.netsum = 0;
@@ -127,14 +135,15 @@ impl Processor {
         let mut PIECEinfo = PIECE::unpack_unchecked(&pda.PIECE.try_borrow_data()?)?;
 
         // set flags
-        let mut FLAGS = BitVec::from_elem(16, false);
-        FLAGS.set(0, false); // PIECE self account is 0001
-        FLAGS.set(1, false);
-        FLAGS.set(2, false); 
-        FLAGS.set(3, true); 
+        let mut flags = BitVec::from_elem(16, false);
+        flags.set(0, false); // PIECE self account is 0001
+        flags.set(1, false);
+        flags.set(2, false); 
+        flags.set(3, true); 
+        flags.set(4, true); // self PIECE initialized by default
 
         // initialize self PIECE account data
-        PIECEinfo.flags = pack_flags(FLAGS);
+        PIECEinfo.flags = pack_flags(flags);
         PIECEinfo.operator = *operator.key;
         PIECEinfo.balance = 0;
         PIECEinfo.netsum = 0;
@@ -146,15 +155,16 @@ impl Processor {
         let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
 
         // set flags
-        let mut FLAGS = BitVec::from_elem(16, false);
-        FLAGS.set(0, false); // REF self account is 0010
-        FLAGS.set(1, false);
-        FLAGS.set(2, true);
-        FLAGS.set(4, false);
+        let mut flags = BitVec::from_elem(16, false);
+        flags.set(0, false); // REF self account is 0010
+        flags.set(1, false);
+        flags.set(2, true);
+        flags.set(3, false);
+        flags.set(4, true); // self REF initialized to point to operator MAIN by default
 
         // initialize self REF account data
-        REFinfo.flags = pack_flags(FLAGS);
-        REFinfo.target = *operator.key;
+        REFinfo.flags = pack_flags(flags);
+        REFinfo.target = *pda.MAIN.key;
         REFinfo.fract = 100_000_000;    // new self-ref gets 100% by default
         REFinfo.netsum = 0;
         REFinfo.refslug = pack_refslug("SELF-REFERENCE".as_bytes().to_vec());

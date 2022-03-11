@@ -13,7 +13,7 @@ use solana_program::{
 use crate::{
         error::FracpayError::InvalidInstruction,
         instruction::data::FracpayInstruction,
-        state::constants::PUBKEY_LEN,
+        state::constants::*,
     };
 
 impl FracpayInstruction {
@@ -22,7 +22,6 @@ impl FracpayInstruction {
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
 
         let (tag, rest) = input.split_first().ok_or(InvalidInstruction)?;
-        msg!("{:?}", rest);
 
         Ok( match tag {
             0 => Self::CreateMAIN {
@@ -44,6 +43,17 @@ impl FracpayInstruction {
                 bumpREF: rest[0],
                 seedREF: rest[1..(1 + PUBKEY_LEN)].to_vec(),
                 REFslug: rest[(1 + PUBKEY_LEN)..].to_vec(),
+            },
+            3 => Self::InitPIECE {
+                invite: rest[0],
+            },
+            4 => Self::InitREF {
+                invite: rest[0],
+                selfseed: rest[1],
+                fract: rest.get(2..(2 + FRACT_LEN))
+                    .and_then(|slice| slice.try_into().ok())
+                    .map(u32::from_be_bytes)
+                    .ok_or(InvalidInstruction)?,
             },
             _ => return Err(InvalidInstruction.into()),
         })

@@ -80,6 +80,30 @@ impl Processor {
                     REFslug,
                 )
             },
+            FracpayInstruction::InitPIECE {
+                invite,
+            } => {
+                msg!("Instruction: InitPIECE");
+                Self::process_init_piece(
+                    program_id,
+                    accounts,
+                    invite,
+                )
+            },
+             FracpayInstruction::InitREF {
+                invite,
+                selfseed,
+                fract,
+            } => {
+                msg!("Instruction: InitREF");
+                Self::process_init_ref(
+                    program_id,
+                    accounts,
+                    invite,
+                    selfseed,
+                    fract,
+                )
+            },
         }
     }
 }

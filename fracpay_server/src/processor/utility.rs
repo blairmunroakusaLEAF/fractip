@@ -12,10 +12,6 @@ use solana_program::{
             next_account_info,
             AccountInfo
         },
-        sysvar::{
-            rent::Rent,
-            Sysvar,
-        },
     };
 use std::array::TryFromSliceError;
 use bit_vec::BitVec;
@@ -54,18 +50,41 @@ pub struct PDA<'a> {
 }
 
 pub fn get_accounts<'a>(accounts: &'a [AccountInfo<'a>]) ->
-    Result<(&'a AccountInfo<'a>, Rent, PDA<'a>), ProgramError> {
+    Result<(&'a AccountInfo<'a>,
+            &'a AccountInfo<'a>,
+            PDA<'a>),
+            ProgramError> {
 
     let account_info_iter = &mut accounts.iter();
     let operator = next_account_info(account_info_iter)?;
-    let rent = Rent::from_account_info(next_account_info(account_info_iter)?)?;
+    let extra = next_account_info(account_info_iter)?;
     let pda = PDA {
         MAIN: next_account_info(account_info_iter)?,
         PIECE: next_account_info(account_info_iter)?,
         REF: next_account_info(account_info_iter)?,
     };
 
-    Ok((operator, rent, pda))
+    Ok((operator, extra, pda))
+}
+
+pub fn get_accounts_init<'a>(accounts: &'a [AccountInfo<'a>]) ->
+    Result<(&'a AccountInfo<'a>,
+            &'a AccountInfo<'a>,
+            &'a AccountInfo<'a>,
+            PDA<'a>),
+            ProgramError> {
+
+    let account_info_iter = &mut accounts.iter();
+    let operator = next_account_info(account_info_iter)?;
+    let invitarget = next_account_info(account_info_iter)?;
+    let pda = PDA {
+        MAIN: next_account_info(account_info_iter)?,
+        PIECE: next_account_info(account_info_iter)?,
+        REF: next_account_info(account_info_iter)?,
+    };
+    let selfREF = next_account_info(account_info_iter)?;
+
+    Ok((operator, invitarget, selfREF, pda))
 }
 
 pub fn pack_refslug(REFslug: Vec<u8>) -> [u8; REFSLUG_LEN] {

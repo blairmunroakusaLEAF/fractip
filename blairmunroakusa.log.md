@@ -1,6 +1,38 @@
 # LOG
 ```
 
+
+```
+```
+blairmunroakusa@1830Thu.10Mar22.anch.AK:goldcouch
+. init functions complete
+~ pure pain
+. working out selfref pda verification
+blairmunroakusa@1508Thu.10Mar22.anch.AK:redcouch
+. devising fraction determination strategy
+blairmunroakusa@0940Thu.10Mar22.anch.AK:south
+. InitREF client
+. updated placestamp to be more readable, better context id
+blairmunroakusa@0519Thu.10Mar22.anch.AK:goldcouch
+```
+```
+blairmunroakusa@2108.031022.anch.AK
+. initREF tested
+. initREF client complete
+blairmunroakusa@1119.030922.anch.AK:goldcouch
+. get_accounts function adjusted
+. initREF server complete
+. initPIECE server complete
+blairmunroakusa@0614.030922.anch.AK:redcouch
+```
+```
+blairmunroakusa@1730.030822.anch.AK
+. craeting InitPIECE instruction
+. made list by operator wallet
+. first need to switch list to memcmp operator filter
+x creating InitPIECE instruction
+. formatted to make nice
+. adding flags to verbose list
 blairmunroakusa@0926.030822.anch.AK:goldcouch
 . created verbose TreePIECE list function
 . created TreePIECE list function

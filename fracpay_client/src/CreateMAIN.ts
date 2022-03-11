@@ -20,7 +20,7 @@ import {
 
 // utility functions
 import {
-	generalTX,
+	createTX,
 	deriveAddress,
 	availableIDcheck,
 	establishConnection,
@@ -90,7 +90,7 @@ const CreateMAIN = async () => {
 		.concat(toUTF8Array(operatorID));
 
 	// prepare transaction
-	const CreateMAINtx = generalTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
+	const CreateMAINtx = createTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
        
 	// send transaction
 	console.log(`txhash: ${await sendAndConfirmTransaction(connection, CreateMAINtx, [operatorKEY], )}`);

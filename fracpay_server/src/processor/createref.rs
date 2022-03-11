@@ -11,6 +11,10 @@ use solana_program::{
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
+        sysvar::{
+            rent::Rent,
+            Sysvar,
+        },
         system_instruction,
         msg,
     };
@@ -72,7 +76,8 @@ impl Processor {
         }
 
         // calculate rent
-        let rentREF = rent.minimum_balance(SIZE_REF.into());
+        let rentREF = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_REF.into());
 
         // create pdaREF
         invoke_signed(
@@ -99,18 +104,16 @@ impl Processor {
         let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
 
         // set flags
-        let mut FLAGS = BitVec::from_elem(16, false);
-        FLAGS.set(0, false); // REF account is 0100
-        FLAGS.set(1, true);  
-        FLAGS.set(2, false);
-        FLAGS.set(3, false); 
-        FLAGS.set(4, false); // not connected
-        FLAGS.set(5, false); // not initialized
-        FLAGS.set(6, false); // not reflected
+        let mut flags = BitVec::from_elem(16, false);
+        flags.set(0, false); // REF account is 0100
+        flags.set(1, true);  
+        flags.set(2, false);
+        flags.set(3, false); 
+        flags.set(4, false); // not initialized
 
         // initialize REF account data
-        REFinfo.flags = pack_flags(FLAGS);
-        REFinfo.target = *operator.key;
+        REFinfo.flags = pack_flags(flags);
+        REFinfo.target = *pda.MAIN.key;
         REFinfo.fract = 0;  // new ref get's 0% by default
         REFinfo.netsum = 0;
         REFinfo.refslug = pack_refslug(REFslug);

@@ -27,6 +27,7 @@ import * as BufferLayout from "buffer-layout";
 const BigNumber = require("bignumber.js");
 const bs58 = require("bs58");
 const lodash = require("lodash");
+const crypto = require('crypto-js');
 
 
 /****************************************************************
@@ -60,6 +61,7 @@ export const REF_SIZE = FLAGS_SIZE +
 		  	NETSUM_SIZE +
 		  	FRACT_SIZE +
 		  	REFSLUG_SIZE;		// = 66
+export const MAX_FRACT = 100_000_000;
 
 export let connection: Connection;
 export let operatorKEY: Keypair;
@@ -75,11 +77,65 @@ export const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
  * general functions						*
  ****************************************************************/
 
+
+
 /**
-* general transaction
+* check initialization flag
 **/
 
-export function generalTX(
+export function initFlagCheck(flags: number) {
+	const flagarray = unpackFlags(flags);
+	return flagarray[4] === 1;
+}
+
+/**
+* create keyhash
+**/
+
+export function newKeyhash() {
+	const newkey = new Keypair();
+	var keyhash = crypto.SHA256(newkey.publicKey.toString());
+	keyhash = bs58.encode(Buffer.from(keyhash.toString(), 'hex'));
+	keyhash = new PublicKey(keyhash);
+	return [newkey.publicKey, keyhash];
+}
+
+/**
+* general init transaction
+**/
+
+export function initTX(
+	pdaMAIN: PublicKey,
+	pdaPIECE: PublicKey,
+	pdaREF: PublicKey,
+	pdaselfREF: PublicKey,
+	invitarget: PublicKey,
+	ixDATA: any[]) {
+
+	// setup transaction
+	return new Transaction().add(
+		new TransactionInstruction({
+			keys: [
+				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: invitarget, isSigner: false, isWritable: true, },
+				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
+				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
+				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
+				{ pubkey: pdaselfREF, isSigner: false, isWritable: true, },
+				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
+			],
+			data: Buffer.from(new Uint8Array(ixDATA)),
+			programId: fracpayID,
+		})
+	);
+}
+
+
+/**
+* general create transaction
+**/
+
+export function createTX(
 	pdaMAIN: PublicKey,
 	pdaPIECE: PublicKey,
 	pdaREF: PublicKey,
@@ -203,7 +259,7 @@ export async function printREFlist(pdaPIECE: PublicKey, count: number) {
 	var REF = await getREFdata(pdaREF);
 
 	// print self PIECE data
-	console.log(`\t- 0\tSELF:\t${REF.refslug}`);
+	console.log(`\t. 0\tSELF:\t${REF.refslug}`);
 
 	// cycle through all pieces
 	for (countREF[0] = 1; countREF[0] <= count; countREF[0]++) {
@@ -216,7 +272,7 @@ export async function printREFlist(pdaPIECE: PublicKey, count: number) {
 		REF = await getREFdata(pdaREF);
 
 		// print PIECE data
-		console.log(`\t- ${countREF[0]}\tREF ID:\t${REF.refslug}`);
+		console.log(`\t. ${countREF[0]}\tREF ID:\t${REF.refslug}`);
 	}	
 	console.log("");
 }
@@ -354,6 +410,17 @@ export function createSeed(pda: PublicKey, count: Uint16Array) {
 }
 
 /**
+* u32 to bytes
+**/
+export function u32toBytes(number: Uint32Array) {
+	let byte1 = number[0] & 0xFF; 		// mask for lowest order number byte
+	let byte2 = (number[0] >> 8) & 0xFF; 	// shift and mask for next lowest order number byte
+	let byte3 = (number[0] >> 16) & 0xFF; 	// shift and mask for high order number byte
+	let byte4 = (number[0] >> 24) & 0xFF; 	// shift and mask for highest order number byte
+	return [byte4, byte3, byte2, byte1];
+}
+
+/**
 * derive pda
 **/
 export async function deriveAddress(seed: any[]) {
@@ -387,6 +454,29 @@ export async function availableIDcheck(operatorID: string): Promise<void> {
 		);
 		process.exit(1);
 	}
+}
+
+/**
+* get all PIECEs with specific MAIN operator account
+***/
+export async function getPIECEs(operator: PublicKey) {
+	console.log("chirp");
+	return await connection.getParsedProgramAccounts(
+		fracpayID,
+		{
+			filters: [
+				{
+					dataSize: PIECE_SIZE,
+				},
+				{
+					memcmp: {
+						offset: FLAGS_SIZE,
+						bytes: operator.toString(),
+					},
+				},
+			],
+		},
+	);
 }
 
 /**

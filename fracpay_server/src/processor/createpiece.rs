@@ -11,6 +11,10 @@ use solana_program::{
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
+        sysvar::{
+            rent::Rent,
+            Sysvar,
+        },
         system_instruction,
         msg,
     };
@@ -65,8 +69,11 @@ impl Processor {
         }
 
         // calculate rent
-        let rentPIECE = rent.minimum_balance(SIZE_PIECE.into());
-        let rentREF = rent.minimum_balance(SIZE_REF.into());
+        let rentPIECE = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_PIECE.into());
+        let rentREF = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_REF.into());
+
 
         // create pdaPIECE
         invoke_signed(
@@ -110,14 +117,14 @@ impl Processor {
         let mut PIECEinfo = PIECE::unpack_unchecked(&pda.PIECE.try_borrow_data()?)?;
 
         // set flags
-        let mut FLAGS = BitVec::from_elem(16, false);
-        FLAGS.set(0, false); // PIECE account is 0011
-        FLAGS.set(1, false);
-        FLAGS.set(2, true);
-        FLAGS.set(3, true);
+        let mut flags = BitVec::from_elem(16, false);
+        flags.set(0, false); // PIECE account is 0011
+        flags.set(1, false);
+        flags.set(2, true);
+        flags.set(3, true);
 
         // initialize PIECE account data
-        PIECEinfo.flags = pack_flags(FLAGS);
+        PIECEinfo.flags = pack_flags(flags);
         PIECEinfo.operator = *operator.key;
         PIECEinfo.balance = 0;
         PIECEinfo.netsum = 0;
@@ -128,15 +135,15 @@ impl Processor {
         let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
 
         // set flags
-        let mut FLAGS = BitVec::from_elem(16, false);
-        FLAGS.set(0, false); // REF self account is 0010
-        FLAGS.set(1, false);
-        FLAGS.set(2, true);
-        FLAGS.set(3, false); 
+        let mut flags = BitVec::from_elem(16, false);
+        flags.set(0, false); // REF self account is 0010
+        flags.set(1, false);
+        flags.set(2, true);
+        flags.set(3, false); 
 
         // initialize self REF account data
-        REFinfo.flags = pack_flags(FLAGS);
-        REFinfo.target = *operator.key;
+        REFinfo.flags = pack_flags(flags);
+        REFinfo.target = *pda.MAIN.key;
         REFinfo.fract = 100_000_000;    // new self-ref gets 100% by default
         REFinfo.netsum = 0;
         REFinfo.refslug = pack_refslug("SELF-REFERENCE".as_bytes().to_vec());
