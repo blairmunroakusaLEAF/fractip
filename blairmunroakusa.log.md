@@ -1,7 +1,15 @@
 # LOG
+
 ```
-
-
+. long break after starting interlock job
+```
+```
+blairmunroakusa@0920Fri.11Mar22.anch.AK:redcouch
+. writing out design doc overview
+. digging into FracpayPIECE function
+blairmunroakusa@0632Fri.11Mar22.anch.AK
+: polilshed InitREF client
+blairmunroakusa@0553Fri.11Mar22.anch.AK:goldcouch
 ```
 ```
 blairmunroakusa@1830Thu.10Mar22.anch.AK:goldcouch
