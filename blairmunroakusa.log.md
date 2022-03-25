@@ -1,6 +1,16 @@
 # LOG
 
 ```
+blairmunroakusa@2006Thu.24Mar22.anch.AK:FT
+. still working on FracpayPIECE client
+	. up to check busy flag
+blairmunroakusa@1902Thu.24Mar22.anch.AK:FT
+. working on FracpayPIECE client
+. updating flag key to include 'busy'
+. review FracpayPIECE design doc
+blairmunroakusa@1724Thu.24Mar22.anch.AK:FT
+```
+```
 . long break after starting interlock job
 ```
 ```

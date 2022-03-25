@@ -29,6 +29,18 @@ The reason we need the flipflops, and not just a simple true/false is because we
 
 What happens if a fracpayment was interrupted, then a new incoming fracpayments comes in from a REF inbetween? In principle, this risks overpaying certain REFs when the fracpayment is completed later. This is pretty easy to get around, but a little messier. More flags!! :D We just need to include a 'busy' flag in the PIECE. When the flag is set paying (during a fracpayment), any incoming payments will still be deposited. The caveat is that the balance will not be changed. At the end of the fracpayment, before resetting the busy flag to zero, the program will check the lamports balance minus the rent to see if it is zero. If not, then a payment was received during the fracpayment fracture. The netsum is incremented by the balance per normal case, but the balance is also incremented by the current lamport balance. There is no way that the deposit will interfere with the payout, because the net is guaranteed to be positive.
 
+blairmunroakusa@1906Thu.24Mar22.anch.AK:FT
+
+BUSY FLAG MUST BE SET LOW BEFORE ANY PAYMENT ABORTION!  Is this feasible?
+
+FOR ONCHAIN ABORTION, ERROR PASSING/UNWIND NEEDS TO CHANGE BUSY FLAG LOW. Is this even possible?
+
+NO! THIS IS ABSURD...a tx failure will only fail that one tx.
+
+busy flag will be a shortcut to checking whether or not all flags are flipped or flopped.
+
+blairmunroakusa@1907Thu.24Mar22.anch.AK:FT
+
 For this function, PIECE balance is critical, whereas only netsum is critical in REFs. A REF can only have a single netsum for a single invite key. At REF linking, when the invite key is proferred, netsum will represent lamport accumulate from start, or zero. After linking, lamports will never accumulate in a REF account, because they forward to the target address. The netsum however, will continue to increase, representing the net sum of lamports paid through a given REF.
 
 The PIECE balance is important because the account's lamports balance will decrease to zero as each REF is paid out. The only secure way to calculate the transfer amount for a given REF however, is to compute this onchain, during server program execution. Balance increase incrementally from zero as payments come in to PIECE. When a fracpayment is executed, balance is used to compute portion to transfer. Only after fracpayment is complete is balance renintialized to zero. Balance will also indicate to the operator how much they stand to draw if they with to force a fracpayment from their PIECE to collect their share. Additionally, a balance variable makes it easy to forget about the rent tied up in a account.
@@ -60,5 +72,20 @@ Client scans for REFs with opposite flag, and checks PIECE for nonzero balance, 
 Client sends a batch of parallel tx requests, returning promise with errors somehow.
 
 Client repeats scan until all flags opposite, then sends final tx 
+
+
+
+
+BUSY FLAG IS DIFFICULT
+
+If busy, it is a race to make the payment by client.
+
+If other client is in middle of transfer, then the race client checks flag but clear so tx fails.
+
+If other client is finished with transfer, then the raace client checks flag but not clear so tx aborts.
+
+On chain needs to set flag to notclear right after processing transfer, so that any competing clients are guaranteed to fail.
+
+This is mostly on chain
 
 

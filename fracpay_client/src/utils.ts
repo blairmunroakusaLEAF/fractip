@@ -89,6 +89,15 @@ export function initFlagCheck(flags: number) {
 }
 
 /**
+* check busy flag
+**/
+
+export function busyFlagCheck(flags: number) {
+	const flagarray = unpackFlags(flags);
+	return flagarray[9] === 1;
+}
+
+/**
 * create keyhash
 **/
 
