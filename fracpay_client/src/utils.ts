@@ -25,6 +25,7 @@ import * as path from "path";
 import * as yaml from "yaml";
 import * as BufferLayout from "buffer-layout";
 const BigNumber = require("bignumber.js");
+const BN = require("bn.js");
 const bs58 = require("bs58");
 const lodash = require("lodash");
 const crypto = require('crypto-js');
@@ -78,6 +79,24 @@ export const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
  ****************************************************************/
 
 
+/**
+* check reflection flag
+**/
+
+export function reflectFlagCheck(flags: number) {
+	const flagarray = unpackFlags(flags);
+	return flagarray[7] === 1;
+}
+
+/**
+* check connection flag
+**/
+
+export function connectFlagCheck(flags: number) {
+	const flagarray = unpackFlags(flags);
+	return flagarray[5] === 1;
+}
+
 
 /**
 * check initialization flag
@@ -95,6 +114,15 @@ export function initFlagCheck(flags: number) {
 export function busyFlagCheck(flags: number) {
 	const flagarray = unpackFlags(flags);
 	return flagarray[9] === 1;
+}
+
+/**
+* check flipflop flag
+**/
+
+export function flipflopFlagCheck(flags: number) {
+	const flagarray = unpackFlags(flags);
+	return flagarray[8] === 1;
 }
 
 /**
@@ -139,6 +167,45 @@ export function initTX(
 	);
 }
 
+/**
+* pay transaction
+**/
+
+export function payTX(
+	pdaTARGET: PublicKey,
+	pdaPIECE: PublicKey,
+	pdaselfREF: PublicKey,
+	pdaREF: PublicKey,
+	ixDATA: any[]) {
+	
+	// raise compute budget for pda derivation max
+	const data = Buffer.from(
+    	Uint8Array.of(0, ...new BN(650000).toArray("le", 4))
+  	);
+  	const additionalComputeBudgetInstruction = new TransactionInstruction({
+    		keys: [],
+    		programId: new PublicKey("ComputeBudget111111111111111111111111111111"),
+    		data,
+  	});
+
+	// setup transaction
+	return new Transaction().add(additionalComputeBudgetInstruction)
+		.add(new TransactionInstruction({
+			keys: [
+				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false, },
+				{ pubkey: pdaselfTARGET, isSigner: false, isWritable: true, },
+				{ pubkey: pdaTARGET, isSigner: false, isWritable: true, },
+				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
+				{ pubkey: pdaselfREF, isSigner: false, isWritable: true, },
+				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
+				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
+			],
+			data: Buffer.from(new Uint8Array(ixDATA)),
+			programId: fracpayID,
+		})
+	);
+}
 
 /**
 * general create transaction
@@ -149,6 +216,7 @@ export function createTX(
 	pdaPIECE: PublicKey,
 	pdaREF: PublicKey,
 	ixDATA: any[]) {
+
 
 	// setup transaction
 	return new Transaction().add(
@@ -188,7 +256,8 @@ export async function verboseREFlist(pdaPIECE: PublicKey, count: number) {
 
 	// print self PIECE data
 	console.log(`\t. 0\t| SELF: --------> ${REF.refslug}`);
-	console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
+	console.log(`\t\t| TARGET: ------> ${pdaREF.toBase58()}`);
+	console.log(`\t\t| ADDRESS: -----> ${REF.target.toBase58()}`);
 	console.log(`\t\t| FRACTION: ----> ${REF.fract}`);
 	console.log(`\t\t| NETSUM: ------> ${REF.netsum}`);
 	process.stdout.write(`\t\t| FLAGS: -------> `);
@@ -227,6 +296,7 @@ export async function verboseREFlist(pdaPIECE: PublicKey, count: number) {
 		// print PIECE data
 		console.log(`\t. ${countREF[0]}\t| REF ID: ------> ${REF.refslug}`);
 		console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
+		console.log(`\t\t| ADDRESS: -----> ${pdaREF.toBase58()}`);
 		console.log(`\t\t| FRACTION: ----> ${REF.fract}`);
 		console.log(`\t\t| NETSUM: ------> ${REF.netsum}`);
 		process.stdout.write(`\t\t| FLAGS: -------> `);
@@ -428,6 +498,8 @@ export function u32toBytes(number: Uint32Array) {
 	let byte4 = (number[0] >> 24) & 0xFF; 	// shift and mask for highest order number byte
 	return [byte4, byte3, byte2, byte1];
 }
+
+
 
 /**
 * derive pda

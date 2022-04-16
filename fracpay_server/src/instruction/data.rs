@@ -49,6 +49,14 @@ pub enum FracpayInstruction {
         selfseed: u8,
         fract: u32,
     },
+
+    // instruction to fracpay piece account
+    FracpayPIECE {
+
+        bumpREF: u8,
+        seedREF: Vec<u8>,
+        payment: u64,
+    },
 }
 
 

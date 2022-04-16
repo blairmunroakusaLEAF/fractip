@@ -1,6 +1,48 @@
 # LOG
 
 ```
+blairmunroakusa@1348Tue.29Mar22.anch.AK:south
+log process crash recovery
+
+, did while {
+. pressed out thorough logic flow for payment process
+	! ref green eng paper
+}
+X
+.
+.
+.
+. compute budget increased or Fracpay
+. authentification working
+. solving ref authentification...brute force
+blairmunroakusa@2300Sat.26Mar22.anch.AK:bd
+blairmunroakusa@1614Sat.26Mar22.anch.AK:
+. testing onchain pda derivation 
+. vanity address ref diversion thwart 
+	.. no problem if program owned
+. working out REF address authentification
+blairmunroakusa@1416Sat.26Mar22.anch.AK:RC
+. working out Payfrac transfer
+. working out initial payment logic
+. settling payment var
+blairmunroakusa@1303Sat.26Mar22.anch.AK:RC
+. troubleshooting payment var garble
+. figuring out js u64 serialization
+. figuring out payment and checks
+blairmunroakusa@1128Sat.26Mar22.anch.AK:RC
+. working out flag logic
+. testing parallel tx and passed accounts
+blairmunroakusa@0730Sat.26Mar22.anch.AK:RC
+```
+```
+blairmunroakusa@2100Fri.25Mar22.anch.AK:rc
+. figuring out get account data issue
+. building out chainside and ix data
+blairmunroakusa@1915Fri.25Mar22.anch.AK:jalepenos
+. creating parallel payment function
+blairmunroakusa@1528Fri.25Mar22.anch.AK:RC
+```
+```
 blairmunroakusa@2006Thu.24Mar22.anch.AK:FT
 . still working on FracpayPIECE client
 	. up to check busy flag

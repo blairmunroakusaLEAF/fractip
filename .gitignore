@@ -23,3 +23,17 @@ fracpay_server/Cargo.lock
 
 # system stuff
 .DS_STORE
+
+
+## API / PYTHON ##
+*.pyc
+
+## WEB / JS ##
+node_modules/
+dist/
+
+## META / OS ##
+*.tmp
+.DS_Store
+.idea/
+
