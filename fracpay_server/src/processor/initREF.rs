@@ -56,7 +56,7 @@ impl Processor {
         let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
 
         // generate self REF seed to verify pda
-        let mut verifyseed = pda.PIECE.key.to_string();
+        let verifyseed = pda.PIECE.key.to_string();
         let verifyseed: &mut Vec<u8> = &mut verifyseed[0..30].as_bytes().to_vec();
         let mut zeros: Vec<u8> = vec![0; COUNT_LEN];
         verifyseed.append(&mut zeros);

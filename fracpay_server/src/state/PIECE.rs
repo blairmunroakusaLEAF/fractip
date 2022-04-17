@@ -28,6 +28,7 @@ pub struct PIECE {
     pub operator: Pubkey,
     pub balance: u64,
     pub netsum: u64,
+    pub left: u64,
     pub refcount: u16,
     pub pieceslug: [u8; PIECESLUG_LEN],
 }
@@ -44,15 +45,17 @@ impl Pack for PIECE {
             operator,
             balance,
             netsum,
+            left,
             refcount,
             pieceslug,
-        ) = array_refs![src, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, COUNT_LEN, PIECESLUG_LEN];
+        ) = array_refs![src, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, LEFT_LEN, COUNT_LEN, PIECESLUG_LEN];
 
         Ok( PIECE {
             flags: u16::from_le_bytes(*flags),
             operator: Pubkey::new_from_array(*operator),
             balance: u64::from_be_bytes(*balance),
             netsum: u64::from_be_bytes(*netsum),
+            left: u64::from_be_bytes(*left),
             refcount: u16::from_le_bytes(*refcount),
             pieceslug: *pieceslug,
         })
@@ -65,15 +68,17 @@ impl Pack for PIECE {
             operator_dst,
             balance_dst,
             netsum_dst,
+            left_dst,
             refcount_dst,
             pieceslug_dst,
-        ) = mut_array_refs![dst, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, COUNT_LEN, PIECESLUG_LEN];
+        ) = mut_array_refs![dst, FLAGS_LEN, PUBKEY_LEN, BALANCE_LEN, NETSUM_LEN, LEFT_LEN, COUNT_LEN, PIECESLUG_LEN];
 
         let PIECE {
             flags,
             operator,
             balance,
             netsum,
+            left,
             refcount,
             pieceslug,
         } = self;
@@ -82,6 +87,7 @@ impl Pack for PIECE {
         operator_dst.copy_from_slice(operator.as_ref());
         *balance_dst = balance.to_be_bytes();
         *netsum_dst = netsum.to_be_bytes();
+        *left_dst = left.to_be_bytes();
         *refcount_dst = refcount.to_le_bytes();
         *pieceslug_dst = *pieceslug;
 

@@ -5,10 +5,7 @@
 
 #![allow(non_snake_case)]
 
-use solana_program::{
-        msg,
-        program_error::ProgramError,
-    };
+use solana_program::program_error::ProgramError;
 
 use crate::{
         error::FracpayError::InvalidInstruction,
@@ -58,11 +55,6 @@ impl FracpayInstruction {
             5 => Self::FracpayPIECE {
                 bumpREF: rest[0],
                 seedREF: rest[1..(1 + PUBKEY_LEN)].to_vec(),
-                payment: rest.get((1 + PUBKEY_LEN)..(1 + PUBKEY_LEN + BALANCE_LEN))
-                    .and_then(|slice| slice.try_into().ok())
-                    .map(u64::from_be_bytes)
-                    .ok_or(InvalidInstruction)?,
-
             },
             _ => return Err(InvalidInstruction.into()),
         })

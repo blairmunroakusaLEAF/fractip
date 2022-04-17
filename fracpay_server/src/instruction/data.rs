@@ -55,7 +55,6 @@ pub enum FracpayInstruction {
 
         bumpREF: u8,
         seedREF: Vec<u8>,
-        payment: u64,
     },
 }
 
