@@ -53,8 +53,7 @@ impl FracpayInstruction {
                     .ok_or(InvalidInstruction)?,
             },
             5 => Self::FracpayPIECE {
-                bumpREF: rest[0],
-                seedREF: rest[1..(1 + PUBKEY_LEN)].to_vec(),
+                seedREF: rest[0..PUBKEY_LEN].to_vec(),
             },
             _ => return Err(InvalidInstruction.into()),
         })

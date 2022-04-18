@@ -39,7 +39,6 @@ impl Processor {
     pub fn process_fracpay_piece(
         program_id: &Pubkey,
         accounts: &[AccountInfo],
-        bumpREF: u8,
         seedREF: Vec<u8>,
     ) -> ProgramResult {
         
@@ -53,27 +52,11 @@ impl Processor {
         let pdaPIECE = next_account_info(account_info_iter)?;
         let pdaselfREF = next_account_info(account_info_iter)?;
         let pdaREF = next_account_info(account_info_iter)?;
-        let systemProgramID = next_account_info(account_info_iter)?;
-
-        // calculate rent
-        let rentPIECE = Rent::from_account_info(rent)?
-            .minimum_balance(SIZE_PIECE.into());
-        let rentREF = Rent::from_account_info(rent)?
-            .minimum_balance(SIZE_REF.into());
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
         }
-
-        // get PIECE info
-        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
-        // get PIECE flags
-        let mut PIECEflags = unpack_flags(PIECEinfo.flags);
-
-        // calculate available lamports in PIECE
-        let lampPayable = pdaPIECE.try_lamports().unwrap() - rentPIECE;
-        msg!("{:?}", lampPayable);
 
         // verify ref is authentic
         let pdaPIECEstring = &pdaPIECE.key.to_string();
@@ -82,16 +65,42 @@ impl Processor {
             return Err(FracpayError::REFNotOwnedError.into());
         }
 
+        // get REF info
+        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
+        // get REF flags
+        let mut REFflags = unpack_flags(REFinfo.flags);
+
+        // verify TARGET is correct
+        // TODO create error for this event
+        if pdaTARGET.key != &REFinfo.target {
+            return Err(FracpayError::REFNotOwnedError.into());
+        }
+
+        // get PIECE info
+        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
+        // get PIECE flags
+        let mut PIECEflags = unpack_flags(PIECEinfo.flags);
+
         // verify seed was not spoofed
         let (pdaREFcheck, _) = Pubkey::find_program_address(&[&seedREF], &program_id);
         if pdaREFcheck != *pdaREF.key {
             return Err(FracpayError::REFNotOwnedError.into());
         }
 
+        // calculate rent
+        let rentPIECE = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_PIECE.into());
+        let rentREF = Rent::from_account_info(rent)?
+            .minimum_balance(SIZE_REF.into());
+
+        // calculate available lamports in PIECE
+        let lampPayable = pdaPIECE.try_lamports().unwrap() - rentPIECE;
+        msg!("{:?}", lampPayable);
+
         // if there's nothing to pay, there's nothing to do or payment done, not busy
         if lampPayable == 0 {
 
-            // ensure lower busy flag and abort remaining incoming tx
+            // ensure lower busy flag to abort remaining incoming tx
             PIECEflags.set(9, false);
             PIECEinfo.flags = pack_flags(PIECEflags);
             PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
@@ -114,22 +123,13 @@ impl Processor {
             }
         }
 
-        // get REF info
-        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
-        // get REF flags
-        let mut REFflags = unpack_flags(REFinfo.flags);
-
         // get selfREF info
         let selfREFinfo = REF::unpack_unchecked(&pdaselfREF.try_borrow_data()?)?;
-        // get REF flags
-        let selfREFflags = unpack_flags(selfREFinfo.flags);
 
-        // get target info if connected
-        if REFflags[5] {
-            let TARGETinfo = PIECE::unpack_unchecked(&pdaTARGET.try_borrow_data()?)?;
-            // get target flags
-            let TARGETflags = unpack_flags(TARGETinfo.flags);
-        };
+        // get target info, or invitation key
+        let mut TARGETinfo = PIECE::unpack_unchecked(&pdaTARGET.try_borrow_data()?)?;
+        // get target flags
+        let TARGETflags = unpack_flags(TARGETinfo.flags);
 
         // check ref to see if alreaady paid
         if PIECEflags[8] == REFflags[8] {
@@ -159,7 +159,13 @@ impl Processor {
                     &pdaTARGET.key,
                     PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000);
 
-                // update counters
+                // check if TARGET is busy, if not, increment balance
+                // (else, just deposit lamports and TARGET
+                if !TARGETflags[9] {
+                    TARGETinfo.balance += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
+                }
+
+                // update PIECE-side counters
                 REFinfo.netsum += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
                 PIECEinfo.left -= PIECEinfo.balance * (REFinfo.fract as u64);
 
@@ -184,6 +190,9 @@ impl Processor {
             }
         }
 
+        // as for the selfREF, if connected, above logic applies, 
+        // if disconnected, above logic applies
+
         // final test, was this last tx?
         if PIECEinfo.left == 0 {
             PIECEflags.set(9, false);
@@ -194,6 +203,9 @@ impl Processor {
         PIECEinfo.flags = pack_flags(PIECEflags);
         PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
 
+        TARGETinfo.flags = pack_flags(TARGETflags);
+        PIECE::pack(TARGETinfo, &mut pdaTARGET.try_borrow_mut_data()?)?;
+
         REFinfo.flags = pack_flags(REFflags);
         REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
 
@@ -201,8 +213,6 @@ impl Processor {
 
 
 
-        // TODO NOT DONE
-        // STILL NEED TO BUILD IN BALANCE ++ AND BUSY FLAG CHECK FOR TARGET PIECE
 
 
 

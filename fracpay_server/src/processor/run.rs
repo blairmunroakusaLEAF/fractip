@@ -105,14 +105,12 @@ impl Processor {
                 )
             },
              FracpayInstruction::FracpayPIECE {
-                bumpREF,
                 seedREF,
             } => {
                 msg!("Instruction: FracpayPIECE");
                 Self::process_fracpay_piece(
                     program_id,
                     accounts,
-                    bumpREF,
                     seedREF,
                 )
             },

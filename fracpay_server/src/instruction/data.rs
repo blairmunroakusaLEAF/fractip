@@ -53,7 +53,6 @@ pub enum FracpayInstruction {
     // instruction to fracpay piece account
     FracpayPIECE {
 
-        bumpREF: u8,
         seedREF: Vec<u8>,
     },
 }
