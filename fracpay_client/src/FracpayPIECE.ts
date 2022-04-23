@@ -131,7 +131,7 @@ const FracpayPIECE = async () => {
 			REFs.push(await getREFdata(pdaREFs[countREF[0]]));
 		}
 		
-		var ixDATA = [5, bumpREFs[0]].concat(pdaREFseeds[0]).concat(new BN(paymentSOL * LAMPORTS_PER_SOL).toArray("be", 8));
+		var ixDATA = [5].concat(pdaREFseeds[0]);
 		var payTXfirst = payTX(
 					REFs[0].target,
 					pdaPIECE,
@@ -144,10 +144,12 @@ const FracpayPIECE = async () => {
 				toPubkey: pdaPIECE,
 				lamports: paymentSOL * LAMPORTS_PER_SOL,
 			}));
+
+		console.log(ixDATA);
+		console.log(operatorKEY.publicKey);
 		console.log(`. Successful Payfrac transaction: `,
 			    `${await sendAndConfirmTransaction(connection, payTXfirst, [operatorKEY], )}`);
 		console.log(`	. Payed ${paymentSOL} to PIECE ${PIECE.pieceslug}`);
-		console.log(ixDATA);
 		var payTXs = Array();
 		console.log(new Uint8Array(pdaPIECE.toBytes()));
 

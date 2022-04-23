@@ -58,6 +58,7 @@ impl Processor {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+
         // verify ref is authentic
         let pdaPIECEstring = &pdaPIECE.key.to_string();
         if &seedREF[0..(PUBKEY_LEN - COUNT_LEN)] != pdaPIECEstring[0..(PUBKEY_LEN - COUNT_LEN)].as_bytes() {
@@ -65,6 +66,7 @@ impl Processor {
             return Err(FracpayError::REFNotOwnedError.into());
         }
 
+        msg!("chirpeee");
         // get REF info
         let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
         // get REF flags
@@ -80,6 +82,12 @@ impl Processor {
         let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
         // get PIECE flags
         let mut PIECEflags = unpack_flags(PIECEinfo.flags);
+        
+        // first sanity test, was this last tx?
+        if PIECEinfo.left == 0 {
+            PIECEflags.set(9, false);
+            PIECEinfo.balance = 0;
+        }
 
         // verify seed was not spoofed
         let (pdaREFcheck, _) = Pubkey::find_program_address(&[&seedREF], &program_id);

@@ -6,6 +6,7 @@
 use thiserror::Error;
 
 use solana_program::program_error::ProgramError;
+use solana_program::msg;
 
 #[derive(Error, Debug, Copy, Clone)]
 pub enum FracpayError {
@@ -53,6 +54,7 @@ pub enum FracpayError {
 
 impl From<FracpayError> for ProgramError {
     fn from(error: FracpayError) -> Self {
-        ProgramError::Custom(error as u32)
+        msg!("{:?}", error);
+        ProgramError::Custom(msg!("{:?}", error))
     }
 }
