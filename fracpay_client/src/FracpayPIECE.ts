@@ -19,23 +19,16 @@ import {
 	SystemProgram,
 	Transaction,
 } from "@solana/web3.js";
-import BN = require("bn.js");
-const crypto = require('crypto-js');
 
+// utilities
 import {
-	MAX_FRACT,
-	u32toBytes,
-	initFlagCheck,
 	busyFlagCheck,
 	flipflopFlagCheck,
 	operatorKEY,
 	connection,
 	printPIECElist,
-	newKeyhash,
 	payTX,
-	initTX,
 	unpackFlags,
-	printREFlist,
 	getREFdata,
 	deriveAddress,
 	createSeed,
@@ -45,7 +38,6 @@ import {
 	getMAINdata,
 	getPIECEdata,
 	toUTF8Array,
-	sleep,
 } from "./utils";
 
 /****************************************************************

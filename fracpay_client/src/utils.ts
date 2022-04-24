@@ -106,6 +106,14 @@ export function connectFlagCheck(flags: number) {
 	return flagarray[5] === 1;
 }
 
+/**
+* check invitation flag
+**/
+
+export function inviteFlagCheck(flags: number) {
+	const flagarray = unpackFlags(flags);
+	return flagarray[6] === 1;
+}
 
 /**
 * check initialization flag
@@ -144,6 +152,32 @@ export function newKeyhash() {
 	keyhash = bs58.encode(Buffer.from(keyhash.toString(), 'hex'));
 	keyhash = new PublicKey(keyhash);
 	return [newkey.publicKey, keyhash];
+}
+
+/**
+* general link transaction
+**/
+
+export function linkTX(
+	pdaMAIN: PublicKey,
+	pdaPIECE: PublicKey,
+	pdaREF: PublicKey,
+	ixDATA: any[]) {
+
+	// setup transaction
+	return new Transaction().add(
+		new TransactionInstruction({
+			keys: [
+				{ pubkey: operatorKEY.publicKey, isSigner: true, isWritable: true, },
+				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
+				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
+				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
+				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
+			],
+			data: Buffer.from(new Uint8Array(ixDATA)),
+			programId: fracpayID,
+		})
+	);
 }
 
 /**
@@ -520,6 +554,28 @@ export function u32toBytes(number: Uint32Array) {
 export async function deriveAddress(seed: any[]) {
 	return await PublicKey.findProgramAddress(
 		[new Uint8Array(seed)], fracpayID);
+}
+
+/**
+* find invitation hash
+**/
+export async function findHash(inviteHASH: string) {
+	return  await connection.getParsedProgramAccounts(
+		fracpayID,
+		{
+			filters: [
+				{
+					dataSize: REF_SIZE,
+				},
+				{
+					memcmp: {
+						offset: FLAGS_SIZE,
+						bytes: inviteHASH,
+					},
+				},
+			],
+		},
+	);
 }
 
 /**

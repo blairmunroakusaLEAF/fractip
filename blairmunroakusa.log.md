@@ -1,5 +1,12 @@
 # LOG
 
+
+```
+...BFD!
+. fully implemented MVF for fracpayPIECE
+Long process crash. Since then...
+blairmunroakusa@1240Sun.24Apr22.anch.AK:rc
+```
 ```
 blairmunroakusa@1348Tue.29Mar22.anch.AK:south
 log process crash recovery
