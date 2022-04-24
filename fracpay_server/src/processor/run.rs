@@ -18,9 +18,9 @@ pub struct Processor;
 
 impl Processor {
 
-    pub fn run_process<'a>(
+    pub fn run_process(
         program_id: &Pubkey,
-        accounts: &'a [AccountInfo<'a>],
+        accounts: &[AccountInfo],
         instruction_data: &[u8],
     ) -> ProgramResult {
 

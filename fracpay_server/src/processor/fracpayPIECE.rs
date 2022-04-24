@@ -45,13 +45,13 @@ impl Processor {
         // get accounts
         let account_info_iter = &mut accounts.iter();
 
-        let operator = next_account_info(account_info_iter)?;
-        let rent = next_account_info(account_info_iter)?;
-        let _pdaselfTARGET = next_account_info(account_info_iter)?;
-        let pdaTARGET = next_account_info(account_info_iter)?;
-        let pdaPIECE = next_account_info(account_info_iter)?;
-        let _pdaselfREF = next_account_info(account_info_iter)?;
-        let pdaREF = next_account_info(account_info_iter)?;
+        let operator        = next_account_info(account_info_iter)?;
+        let rent            = next_account_info(account_info_iter)?;
+        let _pdaselfTARGET  = next_account_info(account_info_iter)?;
+        let pdaTARGET       = next_account_info(account_info_iter)?;
+        let pdaPIECE        = next_account_info(account_info_iter)?;
+        let _pdaselfREF     = next_account_info(account_info_iter)?;
+        let pdaREF          = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
         if !operator.is_signer {

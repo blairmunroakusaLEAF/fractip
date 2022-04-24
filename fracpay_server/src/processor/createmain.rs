@@ -5,7 +5,10 @@
 
 #![allow(non_snake_case)]
 use solana_program::{
-        account_info::AccountInfo,
+        account_info::{
+            AccountInfo,
+            next_account_info,
+        },
         entrypoint::ProgramResult,
         program::invoke_signed,
         program_error::ProgramError,
@@ -34,9 +37,9 @@ use crate::{
 
 impl Processor {
 
-    pub fn process_create_main<'a>(
+    pub fn process_create_main(
         program_id: &Pubkey,
-        accounts: &'a [AccountInfo<'a>],
+        accounts: &[AccountInfo],
         bumpMAIN: u8,
         seedMAIN: Vec<u8>,
         bumpPIECE: u8,
@@ -46,7 +49,13 @@ impl Processor {
     ) -> ProgramResult {
 
         // get accounts
-        let (operator, rent, pda) = get_accounts(accounts)?;
+        let account_info_iter = &mut accounts.iter();
+
+        let operator    = next_account_info(account_info_iter)?;
+        let rent        = next_account_info(account_info_iter)?;
+        let pdaMAIN     = next_account_info(account_info_iter)?;
+        let pdaPIECE    = next_account_info(account_info_iter)?;
+        let pdaREF      = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
@@ -65,14 +74,14 @@ impl Processor {
         invoke_signed(
         &system_instruction::create_account(
             &operator.key,
-            &pda.MAIN.key,
+            &pdaMAIN.key,
             rentMAIN,
             SIZE_MAIN.into(),
             &program_id
         ),
         &[
             operator.clone(),
-            pda.MAIN.clone()
+            pdaMAIN.clone()
         ],
         &[&[&seedMAIN, &[bumpMAIN]]]
         )?;
@@ -82,14 +91,14 @@ impl Processor {
         invoke_signed(
         &system_instruction::create_account(
             &operator.key,
-            &pda.PIECE.key,
+            &pdaPIECE.key,
             rentPIECE,
             SIZE_PIECE.into(),
             &program_id
         ),
         &[
             operator.clone(),
-            pda.PIECE.clone()
+            pdaPIECE.clone()
         ],
         &[&[&seedPIECE, &[bumpPIECE]]]
         )?;
@@ -99,21 +108,21 @@ impl Processor {
         invoke_signed(
         &system_instruction::create_account(
             &operator.key,
-            &pda.REF.key,
+            &pdaREF.key,
             rentREF,
             SIZE_REF.into(),
             program_id
         ),
         &[
             operator.clone(),
-            pda.REF.clone()
+            pdaREF.clone()
         ],
         &[&[&seedREF, &[bumpREF]]]
         )?;
         msg!("Successfully created pdaREF");
 
         // get MAIN info
-        let mut MAINinfo = MAIN::unpack_unchecked(&pda.MAIN.try_borrow_data()?)?;
+        let mut MAINinfo = MAIN::unpack_unchecked(&pdaMAIN.try_borrow_data()?)?;
 
         // set flags
         let mut flags = BitVec::from_elem(16, false);
@@ -129,10 +138,10 @@ impl Processor {
         MAINinfo.balance = 0;
         MAINinfo.netsum = 0;
         MAINinfo.piececount = 0;
-        MAIN::pack(MAINinfo, &mut pda.MAIN.try_borrow_mut_data()?)?;
+        MAIN::pack(MAINinfo, &mut pdaMAIN.try_borrow_mut_data()?)?;
 
         // get PIECE info
-        let mut PIECEinfo = PIECE::unpack_unchecked(&pda.PIECE.try_borrow_data()?)?;
+        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
 
         // set flags
         let mut flags = BitVec::from_elem(16, false);
@@ -149,10 +158,10 @@ impl Processor {
         PIECEinfo.netsum = 0;
         PIECEinfo.refcount = 0;
         PIECEinfo.pieceslug = pack_pieceslug(seedMAIN);
-        PIECE::pack(PIECEinfo, &mut pda.PIECE.try_borrow_mut_data()?)?;
+        PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
 
         // get REF info
-        let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
+        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
 
         // set flags
         let mut flags = BitVec::from_elem(16, false);
@@ -164,11 +173,11 @@ impl Processor {
 
         // initialize self REF account data
         REFinfo.flags = pack_flags(flags);
-        REFinfo.target = *pda.MAIN.key;
+        REFinfo.target = *pdaMAIN.key;
         REFinfo.fract = 100_000_000;    // new self-ref gets 100% by default
         REFinfo.netsum = 0;
         REFinfo.refslug = pack_refslug("SELF-REFERENCE".as_bytes().to_vec());
-        REF::pack(REFinfo, &mut pda.REF.try_borrow_mut_data()?)?;
+        REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
 
         Ok(())
     }

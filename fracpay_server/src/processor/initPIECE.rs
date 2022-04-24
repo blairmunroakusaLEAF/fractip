@@ -5,7 +5,10 @@
 
 #![allow(non_snake_case)]
 use solana_program::{
-        account_info::AccountInfo,
+        account_info::{
+            AccountInfo,
+            next_account_info,
+        },
         entrypoint::ProgramResult,
         program_error::ProgramError,
         program_pack::Pack,
@@ -26,14 +29,21 @@ use crate::{
 
 impl Processor {
 
-    pub fn process_init_piece<'a>(
+    pub fn process_init_piece(
         _program_id: &Pubkey,
-        accounts: &'a [AccountInfo<'a>],
+        accounts: &[AccountInfo],
         invite: u8,
     ) -> ProgramResult {
 
+
         // get accounts
-        let (operator, invitarget, pda) = get_accounts(accounts)?;
+        let account_info_iter = &mut accounts.iter();
+
+        let operator    = next_account_info(account_info_iter)?;
+        let invitarget  = next_account_info(account_info_iter)?;
+        let pdaMAIN     = next_account_info(account_info_iter)?;
+        let pdaPIECE    = next_account_info(account_info_iter)?;
+        let pdaREF      = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
@@ -41,7 +51,7 @@ impl Processor {
         }
        
         // get PIECE info
-        let mut PIECEinfo = PIECE::unpack_unchecked(&pda.PIECE.try_borrow_data()?)?;
+        let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
 
         // check to make sure tx operator is authorized PIECE operator
         if PIECEinfo.operator != *operator.key {
@@ -53,7 +63,7 @@ impl Processor {
         let mut PIECEflags = unpack_flags(PIECEinfo.flags);
 
         // get self REF info
-        let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
+        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
 
         // get self REF flags
         let mut REFflags = unpack_flags(REFinfo.flags);
@@ -68,7 +78,7 @@ impl Processor {
                 REFflags.set(6, false);
                 REFflags.set(0, true); // self REF directs income to a MAIN account
                 REFflags.set(2, false);
-                REFinfo.target = *pda.MAIN.key;
+                REFinfo.target = *pdaMAIN.key;
             },
             // yes invite (to create MAIN and collect from PIECE)
             1 => {
@@ -100,11 +110,11 @@ impl Processor {
 
         // repack all self REF info
         REFinfo.flags = pack_flags(REFflags);
-        REF::pack(REFinfo, &mut pda.REF.try_borrow_mut_data()?)?;
+        REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
 
         // repack all piece info
         PIECEinfo.flags = pack_flags(PIECEflags);
-        PIECE::pack(PIECEinfo, &mut pda.PIECE.try_borrow_mut_data()?)?;
+        PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
 
         Ok(())
     }

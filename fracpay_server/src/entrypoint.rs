@@ -12,9 +12,9 @@ use solana_program::{
 use crate::processor::run::Processor;
 
 entrypoint!(process_instruction);
-fn process_instruction<'a>(
+fn process_instruction(
     program_id: &Pubkey,
-    accounts: &'a [AccountInfo<'a>],
+    accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
     Processor::run_process(program_id, accounts, instruction_data)

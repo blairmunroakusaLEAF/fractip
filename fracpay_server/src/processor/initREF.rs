@@ -5,7 +5,10 @@
 
 #![allow(non_snake_case)]
 use solana_program::{
-        account_info::AccountInfo,
+        account_info::{
+            AccountInfo,
+            next_account_info,
+        },
         entrypoint::ProgramResult,
         program_error::ProgramError,
         program_pack::Pack,
@@ -27,16 +30,23 @@ use crate::{
 
 impl Processor {
 
-    pub fn process_init_ref<'a>(
+    pub fn process_init_ref(
         program_id: &Pubkey,
-        accounts: &'a [AccountInfo<'a>],
+        accounts: &[AccountInfo],
         invite: u8,
         selfseed: u8,
         fract: u32,
     ) -> ProgramResult {
 
         // get accounts
-        let (operator, invitarget, pdaselfREF, pda) = get_accounts_init(accounts)?;
+        let account_info_iter = &mut accounts.iter();
+
+        let operator    = next_account_info(account_info_iter)?;
+        let invitarget  = next_account_info(account_info_iter)?;
+        let _pdaMAIN    = next_account_info(account_info_iter)?;
+        let pdaPIECE    = next_account_info(account_info_iter)?;
+        let pdaREF      = next_account_info(account_info_iter)?;
+        let pdaselfREF  = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
@@ -44,7 +54,7 @@ impl Processor {
         }
        
         // get PIECE info
-        let PIECEinfo = PIECE::unpack_unchecked(&pda.PIECE.try_borrow_data()?)?;
+        let PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
 
         // check to make sure tx operator is authorized PIECE operator
         if PIECEinfo.operator != *operator.key {
@@ -53,10 +63,10 @@ impl Processor {
         }
 
         // get REF info
-        let mut REFinfo = REF::unpack_unchecked(&pda.REF.try_borrow_data()?)?;
+        let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
 
         // generate self REF seed to verify pda
-        let verifyseed = pda.PIECE.key.to_string();
+        let verifyseed = pdaPIECE.key.to_string();
         let verifyseed: &mut Vec<u8> = &mut verifyseed[0..30].as_bytes().to_vec();
         let mut zeros: Vec<u8> = vec![0; COUNT_LEN];
         verifyseed.append(&mut zeros);
@@ -120,7 +130,7 @@ impl Processor {
 
         // repack all REF info
         REFinfo.flags = pack_flags(REFflags);
-        REF::pack(REFinfo, &mut pda.REF.try_borrow_mut_data()?)?;
+        REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
 
         Ok(())
     }

@@ -38,9 +38,9 @@ use crate::{
 
 impl Processor {
 
-    pub fn process_create_piece<'a>(
+    pub fn process_create_piece(
         program_id: &Pubkey,
-        accounts: &'a [AccountInfo<'a>],
+        accounts: &[AccountInfo],
         bumpPIECE: u8,
         seedPIECE: Vec<u8>,
         bumpREF: u8,
@@ -51,12 +51,12 @@ impl Processor {
         // get accounts
         let account_info_iter = &mut accounts.iter();
 
-        let operator = next_account_info(account_info_iter)?;
-        let rent = next_account_info(account_info_iter)?;
-        let pdaMAIN = next_account_info(account_info_iter)?;
-        let pdaPIECE = next_account_info(account_info_iter)?;
-        let pdaREF = next_account_info(account_info_iter)?;
-        let pdaselfPIECE = next_account_info(account_info_iter)?;
+        let operator        = next_account_info(account_info_iter)?;
+        let rent            = next_account_info(account_info_iter)?;
+        let pdaMAIN         = next_account_info(account_info_iter)?;
+        let pdaPIECE        = next_account_info(account_info_iter)?;
+        let pdaREF          = next_account_info(account_info_iter)?;
+        let pdaselfPIECE    = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
