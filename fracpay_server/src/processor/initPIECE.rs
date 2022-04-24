@@ -31,8 +31,8 @@ impl Processor {
 
     pub fn process_init_piece(
         _program_id: &Pubkey,
-        accounts: &[AccountInfo],
-        invite: u8,
+        accounts:    &[AccountInfo],
+        invite:      u8,
     ) -> ProgramResult {
 
 
@@ -47,8 +47,10 @@ impl Processor {
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
+            msg!("Operator is not signer.");
             return Err(ProgramError::MissingRequiredSignature);
         }
+
        
         // get PIECE info
         let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;

@@ -32,10 +32,10 @@ impl Processor {
 
     pub fn process_init_ref(
         program_id: &Pubkey,
-        accounts: &[AccountInfo],
-        invite: u8,
-        selfseed: u8,
-        fract: u32,
+        accounts:   &[AccountInfo],
+        invite:     u8,
+        selfseed:   u8,
+        fract:      u32,
     ) -> ProgramResult {
 
         // get accounts
@@ -50,6 +50,7 @@ impl Processor {
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
+            msg!("Operator is not signer.");
             return Err(ProgramError::MissingRequiredSignature);
         }
        

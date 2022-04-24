@@ -19,9 +19,9 @@ pub struct Processor;
 impl Processor {
 
     pub fn run_process(
-        program_id: &Pubkey,
-        accounts: &[AccountInfo],
-        instruction_data: &[u8],
+        program_id:         &Pubkey,
+        accounts:           &[AccountInfo],
+        instruction_data:   &[u8],
     ) -> ProgramResult {
 
         let instruction = FracpayInstruction::unpack(instruction_data)?;

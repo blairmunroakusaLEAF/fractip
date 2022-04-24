@@ -39,13 +39,13 @@ impl Processor {
 
     pub fn process_create_main(
         program_id: &Pubkey,
-        accounts: &[AccountInfo],
-        bumpMAIN: u8,
-        seedMAIN: Vec<u8>,
-        bumpPIECE: u8,
-        seedPIECE: Vec<u8>,
-        bumpREF: u8,
-        seedREF: Vec<u8>,
+        accounts:   &[AccountInfo],
+        bumpMAIN:   u8,
+        seedMAIN:   Vec<u8>,
+        bumpPIECE:  u8,
+        seedPIECE:  Vec<u8>,
+        bumpREF:    u8,
+        seedREF:    Vec<u8>,
     ) -> ProgramResult {
 
         // get accounts
@@ -59,8 +59,10 @@ impl Processor {
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
+            msg!("Operator is not signer.");
             return Err(ProgramError::MissingRequiredSignature);
         }
+
 
         // calculate rent
         let rentMAIN = Rent::from_account_info(rent)?

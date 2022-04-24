@@ -38,8 +38,8 @@ impl Processor {
 
     pub fn process_fracpay_piece(
         program_id: &Pubkey,
-        accounts: &[AccountInfo],
-        seedREF: Vec<u8>,
+        accounts:   &[AccountInfo],
+        seedREF:    Vec<u8>,
     ) -> ProgramResult {
         
         // get accounts
@@ -55,8 +55,10 @@ impl Processor {
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
+            msg!("Operator is not signer.");
             return Err(ProgramError::MissingRequiredSignature);
         }
+
 
         // get REF info
         let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;

@@ -19,20 +19,16 @@ pub enum FracpayError {
     #[error("Not Rent Exempt")]
     NotRentExempt,
 
-    /// Expected Amount Mismatch
-    #[error("Expected Amount Mismatch")]
-    ExpectedAmountMismatch,
-
     /// Amount Overflow
     #[error("Amount Overflow")]
     AmountOverflow,
 
     /// Try From Slice
-    #[error("Try From Slice Fail")]
+    #[error("Try From Slice Error")]
     TryFromSliceError,
 
     /// Account Creation Attempt Fail
-    #[error("Account Creation Attempt Fail")]
+    #[error("Account Creation Attempt Error")]
     AccountCreationAttemptError,
 
     /// Fatal Flipflop mismatch
@@ -47,9 +43,6 @@ pub enum FracpayError {
     #[error("REF Isn't Owned By PIECE")]
     REFNotOwnedError,
 
-    /// Invalid payment
-    #[error("Payment is not valid")]
-    InvalidPaymentError,
 }
 
 impl From<FracpayError> for ProgramError {

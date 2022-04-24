@@ -40,15 +40,16 @@ impl Processor {
 
     pub fn process_create_ref(
         program_id: &Pubkey,
-        accounts: &[AccountInfo],
-        bumpREF: u8,
-        seedREF: Vec<u8>,
-        REFslug: Vec<u8>,
+        accounts:   &[AccountInfo],
+        bumpREF:    u8,
+        seedREF:    Vec<u8>,
+        REFslug:    Vec<u8>,
     ) -> ProgramResult {
 
         // get accounts
         let account_info_iter = &mut accounts.iter();
 
+        // expected accounts are
         let operator    = next_account_info(account_info_iter)?;
         let rent        = next_account_info(account_info_iter)?;
         let pdaMAIN     = next_account_info(account_info_iter)?;
@@ -57,6 +58,7 @@ impl Processor {
 
         // check to make sure tx operator is signer
         if !operator.is_signer {
+            msg!("Operator is not signer.");
             return Err(ProgramError::MissingRequiredSignature);
         }
 
