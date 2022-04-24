@@ -5,16 +5,8 @@
 
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
-
-use solana_program::{
-        program_error::ProgramError,
-        account_info::{
-            next_account_info,
-            AccountInfo
-        },
-    };
-use std::array::TryFromSliceError;
 use bit_vec::BitVec;
+use std::array::TryFromSliceError;
 use crate::state::constants::*;
 
 pub fn check_seed(seed: &Vec<u8>) -> u16 {
@@ -40,51 +32,6 @@ pub fn unpack_flags(flags: u16) -> BitVec {
     let flagbits = BitVec::from_bytes(&[highflag, lowflag]);
 
     return flagbits
-}
-
-pub struct PDA<'a> {
-
-    pub MAIN: &'a AccountInfo<'a>,
-    pub PIECE: &'a AccountInfo<'a>,
-    pub REF: &'a AccountInfo<'a>,
-}
-
-pub fn get_accounts<'a>(accounts: &'a [AccountInfo<'a>]) ->
-    Result<(&'a AccountInfo<'a>,
-            &'a AccountInfo<'a>,
-            PDA<'a>),
-            ProgramError> {
-
-    let account_info_iter = &mut accounts.iter();
-    let operator = next_account_info(account_info_iter)?;
-    let extra = next_account_info(account_info_iter)?;
-    let pda = PDA {
-        MAIN: next_account_info(account_info_iter)?,
-        PIECE: next_account_info(account_info_iter)?,
-        REF: next_account_info(account_info_iter)?,
-    };
-
-    Ok((operator, extra, pda))
-}
-
-pub fn get_accounts_init<'a>(accounts: &'a [AccountInfo<'a>]) ->
-    Result<(&'a AccountInfo<'a>,
-            &'a AccountInfo<'a>,
-            &'a AccountInfo<'a>,
-            PDA<'a>),
-            ProgramError> {
-
-    let account_info_iter = &mut accounts.iter();
-    let operator = next_account_info(account_info_iter)?;
-    let invitarget = next_account_info(account_info_iter)?;
-    let pda = PDA {
-        MAIN: next_account_info(account_info_iter)?,
-        PIECE: next_account_info(account_info_iter)?,
-        REF: next_account_info(account_info_iter)?,
-    };
-    let selfREF = next_account_info(account_info_iter)?;
-
-    Ok((operator, invitarget, selfREF, pda))
 }
 
 pub fn pack_refslug(REFslug: Vec<u8>) -> [u8; REFSLUG_LEN] {

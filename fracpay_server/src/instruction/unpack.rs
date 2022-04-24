@@ -8,7 +8,7 @@
 use solana_program::program_error::ProgramError;
 
 use crate::{
-        error::FracpayError::InvalidInstruction,
+        error::error::FracpayError::InvalidInstruction,
         instruction::data::FracpayInstruction,
         state::constants::*,
     };

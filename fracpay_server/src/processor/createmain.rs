@@ -5,34 +5,26 @@
 
 #![allow(non_snake_case)]
 use solana_program::{
-        account_info::{
-            AccountInfo,
-            next_account_info,
-        },
+        account_info::AccountInfo,
+        account_info::next_account_info,
         entrypoint::ProgramResult,
         program::invoke_signed,
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
-        sysvar::{
-            rent::Rent,
-            Sysvar,
-        },
-        system_instruction,
+        sysvar::rent::Rent,
+        sysvar::Sysvar,
         msg,
+        system_instruction,
     };
 use bit_vec::BitVec;
 use crate::{
-        processor::{
-            run::Processor,
-            utility::*,
-        },
-        state::{
-            constants::*,
-            MAIN::*,
-            PIECE::*,
-            REF::*,
-        },
+        processor::run::Processor,
+        processor::utility::*,
+        state::constants::*,
+        state::MAIN::*,
+        state::PIECE::*,
+        state::REF::*,
     };
 
 impl Processor {

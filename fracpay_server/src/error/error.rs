@@ -3,10 +3,11 @@
  * blairmunroakusa@.0322.anch.AK
  ****************************************************************/
 
+use solana_program::{
+        program_error::ProgramError,
+        msg,
+    };
 use thiserror::Error;
-
-use solana_program::program_error::ProgramError;
-use solana_program::msg;
 
 #[derive(Error, Debug, Copy, Clone)]
 pub enum FracpayError {

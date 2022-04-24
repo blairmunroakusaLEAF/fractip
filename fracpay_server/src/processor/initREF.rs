@@ -5,10 +5,8 @@
 
 #![allow(non_snake_case)]
 use solana_program::{
-        account_info::{
-            AccountInfo,
-            next_account_info,
-        },
+        account_info::AccountInfo,
+        account_info::next_account_info,
         entrypoint::ProgramResult,
         program_error::ProgramError,
         program_pack::Pack,
@@ -16,16 +14,12 @@ use solana_program::{
         msg,
     };
 use crate::{
-        processor::{
-            run::Processor,
-            utility::*,
-        },
-        state::{
-            PIECE::*,
-            REF::*,
-            constants::*,
-        },
-        error::FracpayError::InvalidInstruction,
+        error::error::FracpayError::InvalidInstruction,
+        processor::run::Processor,
+        processor::utility::*,
+        state::PIECE::*,
+        state::REF::*,
+        state::constants::*,
     };
 
 impl Processor {

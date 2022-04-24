@@ -2,24 +2,20 @@
  * Fracpay server MAIN state implementation   
  * blairmunroakusa@.0322.anch.AK
  ****************************************************************/
-#![allow(non_snake_case)]
 
+#![allow(non_snake_case)]
 use solana_program::{
         program_error::ProgramError,
         pubkey::Pubkey,
-        program_pack::{
-            Pack,
-            Sealed,
-        },
+        program_pack::Pack,
+        program_pack::Sealed,
     };
-
 use arrayref::{
         array_mut_ref,
         array_ref,
         mut_array_refs,
         array_refs,
     };
-
 use crate::state::constants::*;
 
 pub struct MAIN {

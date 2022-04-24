@@ -7,9 +7,7 @@
 use solana_program::{
         entrypoint::ProgramResult,
         pubkey::Pubkey,
-        account_info::{
-            AccountInfo
-        },
+        account_info::AccountInfo,
         msg,
     };
 use crate::instruction::data::*;
