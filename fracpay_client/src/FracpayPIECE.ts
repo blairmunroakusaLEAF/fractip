@@ -121,7 +121,6 @@ const FracpayPIECE = async () => {
 			bumpREFs.push(bumpREF);
 		}
 
-		console.log(pdaPIECE.toString());
 
 		// initialize and populate variables
 		var REFs = new Array();
@@ -134,6 +133,7 @@ const FracpayPIECE = async () => {
 		var ixDATA = [5].concat(pdaREFseeds[0]);
 		var payTXfirst = payTX(
 					REFs[0].target,
+					REFs[0].target,
 					pdaPIECE,
 					pdaREFs[0],
 					pdaREFs[0],
@@ -145,17 +145,16 @@ const FracpayPIECE = async () => {
 				lamports: paymentSOL * LAMPORTS_PER_SOL,
 			}));
 
-		console.log(ixDATA);
-		console.log(operatorKEY.publicKey);
 		console.log(`. Successful Payfrac transaction: `,
 			    `${await sendAndConfirmTransaction(connection, payTXfirst, [operatorKEY], )}`);
 		console.log(`	. Payed ${paymentSOL} to PIECE ${PIECE.pieceslug}`);
+
+		console.log(busyFlagCheck(PIECE.flags))
 		var payTXs = Array();
-		console.log(new Uint8Array(pdaPIECE.toBytes()));
 
 		// check to see if PIECE is busy running a payment
-		//if (busyFlagCheck(PIECE.flags)) {
-		if (true) {
+		if (busyFlagCheck(PIECE.flags)) {
+		//if (true) {
 			// switch to complete payment mode
 		       	console.log(`\n! Fracpay is busy processing a payment for this PIECE.`);	
 			console.log(`\n! We're going to sit here and try to finish the payment.`);
@@ -164,21 +163,17 @@ const FracpayPIECE = async () => {
 
 			ffPIECE = flipflopFlagCheck(PIECE.flags);
 			ffselfREF = flipflopFlagCheck(REFs[0].flags);
-			if (ffPIECE !== ffselfREF) {
-				console.log(`Something catastrophic happened. Aborting all.`);
-				process.exit(1);
-			}
 			
 			// generate transactions for all incomplete REF payments
 			for (countREF[0] = 1; countREF[0] <= PIECE.refcount; countREF[0]++) {
-				if (flipflopFlagCheck(REFs[countREF[0]].flags) !== ffPIECE) {
+				if (flipflopFlagCheck(REFs[countREF[0]].flags) == ffPIECE) {
+					console.log('continue');
 					continue;
 				}
-				ixDATA = [5, bumpREFs[countREF[0]]]
-					.concat(pdaREFseeds[countREF[0]])
-					.concat([0,0,0,0,0,0,0,0]);
-				console.log(ixDATA);
+				ixDATA = [5].concat(pdaREFseeds[countREF[0]]);
+
 				payTXs.push(payTX(
+					REFs[0].target,
 					REFs[countREF[0]].target,
 					pdaPIECE,
 					pdaREFs[0],
@@ -188,6 +183,7 @@ const FracpayPIECE = async () => {
 
 			// send batch of transaction in parallel
 			for (var txno = 0; txno < payTXs.length; txno++) {
+				console.log("chirp");
 				payTXs[txno] = sendAndConfirmTransaction(connection, payTXs[txno], [operatorKEY], )
 			}
 

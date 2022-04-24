@@ -55,6 +55,6 @@ pub enum FracpayError {
 impl From<FracpayError> for ProgramError {
     fn from(error: FracpayError) -> Self {
         msg!("{:?}", error);
-        ProgramError::Custom(msg!("{:?}", error))
+        ProgramError::Custom(error as u32)
     }
 }

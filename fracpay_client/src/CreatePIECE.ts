@@ -78,8 +78,13 @@ const CreatePIECE = async () => {
 		process.exit(1);
 	}
 
+	// generate operator self PIECE
+	var countPIECE = new Uint16Array(1);
+	countPIECE[0] = 0;
+	const pdaselfPIECEseed = createSeed(pdaMAIN, countPIECE);
+	const [pdaselfPIECE, bumpselfPIECE] = await deriveAddress(pdaselfPIECEseed);
+
 	// set new piece count
-	const countPIECE = new Uint16Array(1);
 	countPIECE[0] = MAIN.piececount + 1;
 	console.log(`. This will be PIECE number ${countPIECE[0]}.`);
 
@@ -104,7 +109,7 @@ const CreatePIECE = async () => {
 		.concat(toUTF8Array(PIECEslug));
 
 	// prepare transaction
-	const CreatePIECEtx = createTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
+	const CreatePIECEtx = createTX(pdaMAIN, pdaPIECE, pdaREF, pdaselfPIECE, ixDATA);
 
 	// send transaction
 	console.log(`txhash: ${await sendAndConfirmTransaction(connection, CreatePIECEtx, [operatorKEY] )}`);

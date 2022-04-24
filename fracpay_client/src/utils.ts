@@ -172,6 +172,7 @@ export function initTX(
 **/
 
 export function payTX(
+	pdaselfTARGET: PublicKey,
 	pdaTARGET: PublicKey,
 	pdaPIECE: PublicKey,
 	pdaselfREF: PublicKey,
@@ -215,6 +216,7 @@ export function createTX(
 	pdaMAIN: PublicKey,
 	pdaPIECE: PublicKey,
 	pdaREF: PublicKey,
+	extra: PublicKey,
 	ixDATA: any[]) {
 
 
@@ -227,6 +229,7 @@ export function createTX(
 				{ pubkey: pdaMAIN, isSigner: false, isWritable: true, },
 				{ pubkey: pdaPIECE, isSigner: false, isWritable: true, },
 				{ pubkey: pdaREF, isSigner: false, isWritable: true, },
+				{ pubkey: extra, isSigner: false, isWritable: true, },
 				{ pubkey: SystemProgram.programId, isSigner: false, isWritable: false, },
 			],
 			data: Buffer.from(new Uint8Array(ixDATA)),
@@ -256,8 +259,8 @@ export async function verboseREFlist(pdaPIECE: PublicKey, count: number) {
 
 	// print self PIECE data
 	console.log(`\t. 0\t| SELF: --------> ${REF.refslug}`);
-	console.log(`\t\t| TARGET: ------> ${pdaREF.toBase58()}`);
-	console.log(`\t\t| ADDRESS: -----> ${REF.target.toBase58()}`);
+	console.log(`\t\t| ADDRESS: -----> ${pdaREF.toBase58()}`);
+	console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
 	console.log(`\t\t| FRACTION: ----> ${REF.fract}`);
 	console.log(`\t\t| NETSUM: ------> ${REF.netsum}`);
 	process.stdout.write(`\t\t| FLAGS: -------> `);
@@ -295,8 +298,8 @@ export async function verboseREFlist(pdaPIECE: PublicKey, count: number) {
 
 		// print PIECE data
 		console.log(`\t. ${countREF[0]}\t| REF ID: ------> ${REF.refslug}`);
-		console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
 		console.log(`\t\t| ADDRESS: -----> ${pdaREF.toBase58()}`);
+		console.log(`\t\t| TARGET: ------> ${REF.target.toBase58()}`);
 		console.log(`\t\t| FRACTION: ----> ${REF.fract}`);
 		console.log(`\t\t| NETSUM: ------> ${REF.netsum}`);
 		process.stdout.write(`\t\t| FLAGS: -------> `);
@@ -431,6 +434,7 @@ export async function getPIECEdata(pdaPIECE: PublicKey) {
 		operator: new PublicKey(decodedPIECEstate.operator),
 		balance: new BigNumber("0x" + decodedPIECEstate.balance.toString("hex")),
 		netsum: new BigNumber("0x" + decodedPIECEstate.netsum.toString("hex")),
+		left: new BigNumber("0x" + decodedPIECEstate.netsum.toString("hex")),
 		refcount: decodedPIECEstate.refcount,
 		pieceslug: decodedPIECEstate.pieceslug.toString(),
 
@@ -852,6 +856,7 @@ export const PIECE_DATA_LAYOUT = BufferLayout.struct([
 	publicKey("operator"),
 	uint64("balance"),
 	uint64("netsum"),
+	uint64("left"),
 	BufferLayout.u16("refcount"),
 	pieceSlug("pieceslug"),
 ]);
@@ -860,6 +865,7 @@ export interface PIECElayout {
        	operator: Uint8Array;
 	balance: Buffer;
 	netsum: Buffer;
+	left: Buffer
 	refcount: number;
 	pieceslug: Uint8Array;
 }

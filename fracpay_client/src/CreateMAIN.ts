@@ -88,10 +88,9 @@ const CreateMAIN = async () => {
 		.concat(pdaREFseed)
 		.concat(pdaPIECEseed)
 		.concat(toUTF8Array(operatorID));
-	console.log(ixDATA);
 
 	// prepare transaction
-	const CreateMAINtx = createTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
+	const CreateMAINtx = createTX(pdaMAIN, pdaPIECE, pdaREF, pdaREF, ixDATA);
        
 	// send transaction
 	console.log(`txhash: ${await sendAndConfirmTransaction(connection, CreateMAINtx, [operatorKEY], )}`);

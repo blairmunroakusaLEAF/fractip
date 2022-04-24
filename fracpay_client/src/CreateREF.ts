@@ -118,7 +118,7 @@ const CreateREF = async () => {
 	// find new ref address
 	const pdaREFseed = createSeed(pdaPIECE, countREF);
 	const [pdaREF, bumpREF] = await deriveAddress(pdaREFseed);
-	console.log(`. New REF pda:\t${pdaPIECE.toBase58()} found after ${256 - bumpPIECE} tries`);
+	console.log(`. New REF pda:\t${pdaREF.toBase58()} found after ${256 - bumpPIECE} tries`);
 
 	// setup instruction data
 	var ixDATA = [2, bumpREF]
@@ -126,7 +126,7 @@ const CreateREF = async () => {
 		.concat(toUTF8Array(REFslug));
 	
 	// prepare transaction
-	const CreateREFtx = createTX(pdaMAIN, pdaPIECE, pdaREF, ixDATA);
+	const CreateREFtx = createTX(pdaMAIN, pdaPIECE, pdaREF, pdaREF, ixDATA);
 	
 	// send transaction
 	console.log(`txhash: ${await sendAndConfirmTransaction(connection, CreateREFtx, [operatorKEY] )}`);

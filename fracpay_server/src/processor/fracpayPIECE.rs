@@ -17,7 +17,6 @@ use solana_program::{
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
-        system_instruction,
         msg,
     };
 //use bit_vec::BitVec;
@@ -27,6 +26,7 @@ use crate::{
             utility::*,
         },
         state::{
+            MAIN::*,
             PIECE::*,
             REF::*,
             constants::*,
@@ -47,10 +47,10 @@ impl Processor {
 
         let operator = next_account_info(account_info_iter)?;
         let rent = next_account_info(account_info_iter)?;
-        let pdaselfTARGET = next_account_info(account_info_iter)?;
+        let _pdaselfTARGET = next_account_info(account_info_iter)?;
         let pdaTARGET = next_account_info(account_info_iter)?;
         let pdaPIECE = next_account_info(account_info_iter)?;
-        let pdaselfREF = next_account_info(account_info_iter)?;
+        let _pdaselfREF = next_account_info(account_info_iter)?;
         let pdaREF = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
@@ -58,15 +58,6 @@ impl Processor {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-
-        // verify ref is authentic
-        let pdaPIECEstring = &pdaPIECE.key.to_string();
-        if &seedREF[0..(PUBKEY_LEN - COUNT_LEN)] != pdaPIECEstring[0..(PUBKEY_LEN - COUNT_LEN)].as_bytes() {
-            // need to test this logic statement by creating bogus tx
-            return Err(FracpayError::REFNotOwnedError.into());
-        }
-
-        msg!("chirpeee");
         // get REF info
         let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
         // get REF flags
@@ -78,6 +69,7 @@ impl Processor {
             return Err(FracpayError::REFNotOwnedError.into());
         }
 
+
         // get PIECE info
         let mut PIECEinfo = PIECE::unpack_unchecked(&pdaPIECE.try_borrow_data()?)?;
         // get PIECE flags
@@ -87,6 +79,13 @@ impl Processor {
         if PIECEinfo.left == 0 {
             PIECEflags.set(9, false);
             PIECEinfo.balance = 0;
+        }
+
+        // verify ref is authentic
+        let pdaPIECEstring = pdaPIECE.key.to_string();
+        if &seedREF[0..(PUBKEY_LEN - COUNT_LEN)] != pdaPIECEstring[0..(PUBKEY_LEN - COUNT_LEN)].as_bytes() {
+            // need to test this logic statement by creating bogus tx
+            return Err(FracpayError::REFNotOwnedError.into());
         }
 
         // verify seed was not spoofed
@@ -115,14 +114,17 @@ impl Processor {
             msg!("All done, or nothing to do.");
 
             return Ok(())
+
         } else {
 
             // initiate payment now
-            if !PIECEflags[9] {
-                PIECEflags.set(9, true);
-                PIECEinfo.balance = lampPayable;
-                PIECEinfo.left = lampPayable;
-                // Pff, piece flipflop
+            if !PIECEflags[9] {                     // if not already busy
+
+                PIECEflags.set(9, true);            // indicate piece is busy paying out
+                PIECEinfo.balance = lampPayable;    // sync balance up with lampPayable
+                PIECEinfo.left = lampPayable;       // set countdown left variable
+                
+                // Pff, piece flipflop, to opposite of all refs (busy low implies all ff same)
                 if PIECEflags[8] {
                     PIECEflags.set(8, false);
                 } else {
@@ -131,18 +133,10 @@ impl Processor {
             }
         }
 
-        // get selfREF info
-        let selfREFinfo = REF::unpack_unchecked(&pdaselfREF.try_borrow_data()?)?;
-
-        // get target info, or invitation key
-        let mut TARGETinfo = PIECE::unpack_unchecked(&pdaTARGET.try_borrow_data()?)?;
-        // get target flags
-        let TARGETflags = unpack_flags(TARGETinfo.flags);
-
         // check ref to see if alreaady paid
         if PIECEflags[8] == REFflags[8] {
-            //TODO may need to make this return Ok(())
-            return Err(FracpayError::AlreadyPaidError.into());
+            msg!("REF already paid.");
+            return Ok(())
         };
 
         // now it is established that Pff != Rff
@@ -151,43 +145,75 @@ impl Processor {
 
         // process payment for connected and disconnected cases
         if PIECEflags[9] {  // if busy
-            if PIECEflags[5] { // if connected
 
+
+            if REFflags[0] &&
+                !REFflags[1] &&
+                !REFflags[2] &&
+                !REFflags[3] { // if target is a MAIN account
+
+                // get target info, or invitation key
+                let mut TARGETinfo = MAIN::unpack_unchecked(&pdaTARGET.try_borrow_data()?)?;
+    
                 // transfer lamports found at REF
                 if lampREF != 0 {
-                    system_instruction::transfer(
-                        &pdaREF.key,
-                        &pdaTARGET.key,
-                        lampREF);
+                    **pdaREF.try_borrow_mut_lamports()? -= lampREF;
+                    **pdaTARGET.try_borrow_mut_lamports()? += lampREF;
                 }
 
                 // transfer lamport fraction from PIECE
-                system_instruction::transfer(
-                    &pdaPIECE.key,
-                    &pdaTARGET.key,
-                    PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000);
-
-                // check if TARGET is busy, if not, increment balance
-                // (else, just deposit lamports and TARGET
-                if !TARGETflags[9] {
-                    TARGETinfo.balance += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
-                }
+                **pdaPIECE.try_borrow_mut_lamports()? -= PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+                **pdaTARGET.try_borrow_mut_lamports()? += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
 
                 // update PIECE-side counters
+                TARGETinfo.balance += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
                 REFinfo.netsum += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
-                PIECEinfo.left -= PIECEinfo.balance * (REFinfo.fract as u64);
+                PIECEinfo.left -= PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+                
+                MAIN::pack(TARGETinfo, &mut pdaTARGET.try_borrow_mut_data()?)?;
 
-            } else { // if disconnected
+            } else { // target is PIECE, which may be busy (or REF, which will break)
+                if REFflags[5] { // if connected
+                    // get target info, or invitation key
+                    let mut TARGETinfo = PIECE::unpack_unchecked(&pdaTARGET.try_borrow_data()?)?;
+    
+                    // get target flags
+                    let TARGETflags = unpack_flags(TARGETinfo.flags);
 
-                // transfer lamports
-                 system_instruction::transfer(
-                     &pdaPIECE.key,
-                     &pdaREF.key,
-                     PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000);
+                    // transfer lamports found at REF
+                    if lampREF != 0 {
+                    
+                        **pdaREF.try_borrow_mut_lamports()? -= lampREF;
+                        **pdaTARGET.try_borrow_mut_lamports()? += lampREF;
+                    }
 
-                // update counters
-                REFinfo.netsum = PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
-                PIECEinfo.left -= PIECEinfo.balance * (REFinfo.fract as u64);
+                    // transfer lamport fraction from PIECE
+                    **pdaPIECE.try_borrow_mut_lamports()? -= PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+                    **pdaTARGET.try_borrow_mut_lamports()? += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+
+                    // check if TARGET is busy, if not, increment balance
+                    // (else, just deposit lamports and TARGET
+                    if !TARGETflags[9] { // if not busy true
+                        TARGETinfo.balance += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
+                    }
+
+                    // update PIECE-side counters
+                    REFinfo.netsum += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000 + lampREF;
+                    PIECEinfo.left -= PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+
+                    TARGETinfo.flags = pack_flags(TARGETflags);
+                    PIECE::pack(TARGETinfo, &mut pdaTARGET.try_borrow_mut_data()?)?;
+                
+                } else { // if disconnected
+
+                    // transfer lamports
+                    **pdaPIECE.try_borrow_mut_lamports()? -= PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+                    **pdaREF.try_borrow_mut_lamports()? += PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+
+                    // update counters
+                    REFinfo.netsum = pdaREF.try_lamports().unwrap() - rentREF;
+                    PIECEinfo.left -= PIECEinfo.balance * (REFinfo.fract as u64) / 100_000_000;
+                }
             }
 
             // Rff, REF flipflop
@@ -211,114 +237,11 @@ impl Processor {
         PIECEinfo.flags = pack_flags(PIECEflags);
         PIECE::pack(PIECEinfo, &mut pdaPIECE.try_borrow_mut_data()?)?;
 
-        TARGETinfo.flags = pack_flags(TARGETflags);
-        PIECE::pack(TARGETinfo, &mut pdaTARGET.try_borrow_mut_data()?)?;
 
         REFinfo.flags = pack_flags(REFflags);
         REF::pack(REFinfo, &mut pdaREF.try_borrow_mut_data()?)?;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //msg!("{:?}", payment);
-
-/*
-        // check to make sure tx operator is authorized PIECE operator
-        if PIECEinfo.operator != *operator.key {
-            msg!("Operator doesn't control PIECE.");
-            return Err(ProgramError::MissingRequiredSignature);
-        }
-
-
-
-
-        // generate self REF seed to verify pda
-        let mut verifyseed = pda.PIECE.key.to_string();
-        let verifyseed: &mut Vec<u8> = &mut verifyseed[0..30].as_bytes().to_vec();
-        let mut zeros: Vec<u8> = vec![0; COUNT_LEN];
-        verifyseed.append(&mut zeros);
-        let selfREFverify = Pubkey::create_program_address(
-            &[&verifyseed, &[selfseed]], &program_id)?;
-
-        // get self REF info, and remaining portion fraction
-        let mut selfREFinfo = REF::unpack_unchecked(&pdaselfREF.try_borrow_data()?)?;
-        let mut remainder = selfREFinfo.fract;
-        let available = remainder + REFinfo.fract;
-
-        // check to make sure fraction doesn't exceed available
-        if fract > available {
-            msg!("Client is demanding fraction that exceeds available portion.");
-            return Err(InvalidInstruction.into());
-        }
-
-        // check self REF is right
-        if *pdaselfREF.key != selfREFverify {
-            msg!("The self ref this tx is referring belongs to a different PIECE.");
-            return Err(InvalidInstruction.into());
-        }
-
-        // get REF flags
-        let mut REFflags = unpack_flags(REFinfo.flags);
-
-        // set REF target, invite key or address depending on client needs
-        REFinfo.target = *invitarget.key;
-
-        // set REF fraction
-        REFinfo.fract = fract;
-
-        // adjust self REF remainder fraction
-        remainder = available - fract;
-
-        // set modified self REF remainder fraction
-        selfREFinfo.fract = remainder;
-
-        // parse invite tag
-        match invite {
-            // no invite, connected to target address
-            0 => {
-                REFflags.set(5, true); // REF is connected
-                REFflags.set(6, false); // REF is not an invitation
-            },
-            1 => {
-                REFflags.set(5, false); // REF is disconnected
-                REFflags.set(6, true); // REF is an invitation
-            },
-            _ => {
-                msg!("Invalid instruction invite tag.");
-                return Err(InvalidInstruction.into());
-            },
-        }
-
-        // set initialized flag
-        REFflags.set(4, true);
-
-        // repack all self REF info
-        REF::pack(selfREFinfo, &mut pdaselfREF.try_borrow_mut_data()?)?;
-
-        // repack all REF info
-        REFinfo.flags = pack_flags(REFflags);
-        REF::pack(REFinfo, &mut pda.REF.try_borrow_mut_data()?)?;
-*/
         Ok(())
     }
 }

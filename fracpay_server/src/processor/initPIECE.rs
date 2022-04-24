@@ -66,6 +66,8 @@ impl Processor {
                 REFflags.set(5, true);
                 PIECEflags.set(6, false); // PIECE and self REF not an invitation
                 REFflags.set(6, false);
+                REFflags.set(0, true); // self REF directs income to a MAIN account
+                REFflags.set(2, false);
                 REFinfo.target = *pda.MAIN.key;
             },
             // yes invite (to create MAIN and collect from PIECE)
@@ -82,6 +84,8 @@ impl Processor {
                 REFflags.set(5, true);
                 PIECEflags.set(6, false); // PIECE and self REF not an invitation
                 REFflags.set(6, false);
+                REFflags.set(0, true); // self REF directs income to a MAIN account
+                REFflags.set(2, false);
                 REFinfo.target = *invitarget.key;
             },
             _ => {

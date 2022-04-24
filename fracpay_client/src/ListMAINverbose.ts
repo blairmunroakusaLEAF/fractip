@@ -51,7 +51,7 @@ const ListMAINverbose = async () => {
 	const MAIN = await getMAINdata(pdaMAIN);
 	
 	// state intention
-	console.log(`PIECE tree:\n`);
+	console.log(`\nMAIN tree:\n`);
 	
 	var countPIECE = new Uint16Array(1);
 	countPIECE[0] = 0;
@@ -63,15 +63,45 @@ const ListMAINverbose = async () => {
 	// get PIECE data
 	var PIECE = await getPIECEdata(pdaPIECE);
 
-	// get flags
+	// get PIECE flags
 	var flags = unpackFlags(PIECE.flags);
 
+	// get MAIN flags
+	var MAINflags = unpackFlags(MAIN.flags);
+
+	// print MAIN data
+	console.log(`| OPERATOR-MAIN`)
+	console.log(`| ADDRESS: -----> ${pdaMAIN.toBase58()}`);
+	console.log(`| OPERATOR: ----> ${MAIN.operator}`);
+	console.log(`| BALANCE: -----> ${MAIN.balance}`);
+	console.log(`| NETSUM: ------> ${MAIN.netsum}`);
+	process.stdout.write(`| FLAGS: -------> `);
+	process.stdout.write(`[ `);
+	for (var index = 0; index < 4; index++) {
+		process.stdout.write(`${MAINflags[index]} `);
+	}
+	process.stdout.write(`| `);
+	for (var index = 4; index < 8; index++) {
+		process.stdout.write(`${MAINflags[index]} `);
+	}
+	process.stdout.write(`| `);
+	for (var index = 8; index < 12; index++) {
+		process.stdout.write(`${MAINflags[index]} `);
+	}
+	process.stdout.write(`| `);
+	for (var index = 12; index < 16; index++) {
+		process.stdout.write(`${MAINflags[index]} `);
+	}
+	process.stdout.write(`]`);
+		process.stdout.write(`\n\n`);
+
 	// print self PIECE data
-	console.log(`# 0\t| OPERATOR ID: -> ${PIECE.pieceslug}`);
+	console.log(`# 0\t| SELF-PIECE: --> ${PIECE.pieceslug}`);
 	console.log(`\t| ADDRESS: -----> ${pdaPIECE.toBase58()}`);
 	console.log(`\t| OPERATOR: ----> ${PIECE.operator}`);
 	console.log(`\t| BALANCE: -----> ${PIECE.balance}`);
 	console.log(`\t| NETSUM: ------> ${PIECE.netsum}`);
+	console.log(`\t| LEFT: --------> ${PIECE.left}`);
 	process.stdout.write(`\t| FLAGS: -------> `);
 	process.stdout.write(`[ `);
 	for (var index = 0; index < 4; index++) {
@@ -114,6 +144,7 @@ const ListMAINverbose = async () => {
 		console.log(`\t| OPERATOR: ----> ${PIECE.operator}`);
 		console.log(`\t| BALANCE: -----> ${PIECE.balance}`);
 		console.log(`\t| NETSUM: ------> ${PIECE.netsum}`);
+		console.log(`\t| LEFT: --------> ${PIECE.left}`);
 		process.stdout.write(`\t| FLAGS: -------> `);
 		process.stdout.write(`[ `);
 		for (var index = 0; index < 4; index++) {
