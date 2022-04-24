@@ -17,6 +17,7 @@ import {
 	PublicKey,
 	LAMPORTS_PER_SOL,
 	SystemProgram,
+	Transaction,
 } from "@solana/web3.js";
 import BN = require("bn.js");
 const crypto = require('crypto-js');
@@ -44,6 +45,7 @@ import {
 	getMAINdata,
 	getPIECEdata,
 	toUTF8Array,
+	sleep,
 } from "./utils";
 
 /****************************************************************
@@ -125,44 +127,47 @@ const FracpayPIECE = async () => {
 		// initialize and populate variables
 		var REFs = new Array();
 		var ffPIECE = false;
-		var ffselfREF = false;
 		for (countREF[0] = 0; countREF[0] <= PIECE.refcount; countREF[0]++) {
 			REFs.push(await getREFdata(pdaREFs[countREF[0]]));
 		}
-		
-		var ixDATA = [5].concat(pdaREFseeds[0]);
-		var payTXfirst = payTX(
-					REFs[0].target,
-					REFs[0].target,
-					pdaPIECE,
-					pdaREFs[0],
-					pdaREFs[0],
-					ixDATA,);
-		payTXfirst.add(
-			SystemProgram.transfer({
-				fromPubkey: operatorKEY.publicKey,
-				toPubkey: pdaPIECE,
-				lamports: paymentSOL * LAMPORTS_PER_SOL,
-			}));
+		var payTXfirst = new Transaction()
+ 			.add(SystemProgram.transfer({
+    				fromPubkey: operatorKEY.publicKey,
+    				toPubkey: pdaPIECE,
+    				lamports: paymentSOL * LAMPORTS_PER_SOL  
+			}))
 
 		console.log(`. Successful Payfrac transaction: `,
 			    `${await sendAndConfirmTransaction(connection, payTXfirst, [operatorKEY], )}`);
 		console.log(`	. Payed ${paymentSOL} to PIECE ${PIECE.pieceslug}`);
 
-		console.log(busyFlagCheck(PIECE.flags))
+		// this first tx turns on busy status to activate following while loop
+		// it also reflects the mantra 'pay yourself first'
+		var ixDATA = [5].concat(pdaREFseeds[0]);
+		payTXfirst = payTX(
+				REFs[0].target,
+				REFs[0].target,
+				pdaPIECE,
+				pdaREFs[0],
+				pdaREFs[0],
+				ixDATA,);
+
+		console.log(`. Successful Payfrac transaction: `,
+			    `${await sendAndConfirmTransaction(connection, payTXfirst, [operatorKEY], )}`);
+
+		PIECE = await getPIECEdata(pdaPIECE);
+		console.log(`${PIECE.left}`);
 		var payTXs = Array();
 
 		// check to see if PIECE is busy running a payment
-		if (busyFlagCheck(PIECE.flags)) {
+		while (busyFlagCheck(PIECE.flags)) {
 		//if (true) {
 			// switch to complete payment mode
 		       	console.log(`\n! Fracpay is busy processing a payment for this PIECE.`);	
-			console.log(`\n! We're going to sit here and try to finish the payment.`);
-			console.log(`\n! For now you eat the cost; we're all in this together.`);
+			console.log(`! We're going to sit here help finish the payment.`);
+			
 			// get ff flags from piece and self-reference
-
 			ffPIECE = flipflopFlagCheck(PIECE.flags);
-			ffselfREF = flipflopFlagCheck(REFs[0].flags);
 			
 			// generate transactions for all incomplete REF payments
 			for (countREF[0] = 1; countREF[0] <= PIECE.refcount; countREF[0]++) {
@@ -190,25 +195,18 @@ const FracpayPIECE = async () => {
 			// await tx responses
 			for (var txno = 0; txno < payTXs.length; txno++) {
 				payTXs[txno] = await payTXs[txno];
+				PIECE = await getPIECEdata(pdaPIECE);
+				console.log(`${PIECE.left}`);
 			}
 
 			// print results
 			for (var txno = 0; txno < payTXs.length; txno++) {
 				console.log(`. Successful Fracpay transaction: `, payTXs[txno]);
 			}
-
 			
-
-					
-		
-		
-
-
+			PIECE = await getPIECEdata(pdaPIECE);
+			console.log(`${PIECE.left}`);
 		}
-
-			// 
-		//	while (busyFlagCheck(PIECE.flags)) {
-				
 
 	} catch {
 		console.log(Error);

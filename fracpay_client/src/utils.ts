@@ -39,6 +39,7 @@ export const FLAGS_SIZE = 2;
 export const PUBKEY_SIZE = 32;
 export const BALANCE_SIZE = 8;
 export const NETSUM_SIZE = 8;
+export const LEFT_SIZE = 8;
 export const COUNT_SIZE = 2;
 export const FRACT_SIZE = 4;
 export const PIECESLUG_SIZE = 67; 	// 63 + 4
@@ -54,8 +55,9 @@ export const PIECE_SIZE = FLAGS_SIZE +
 		  	PUBKEY_SIZE +
 		  	BALANCE_SIZE +
 		  	NETSUM_SIZE +
+			LEFT_SIZE +
 		  	COUNT_SIZE +
-		  	PIECESLUG_SIZE;		// = 119
+		  	PIECESLUG_SIZE;		// = 127
 
 export const REF_SIZE = FLAGS_SIZE +
 		  	PUBKEY_SIZE +
@@ -78,6 +80,13 @@ export const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, PROGRAM_KEYFILE);
  * general functions						*
  ****************************************************************/
 
+/**
+* sleep
+**/
+
+export function sleep(millis) {
+  return new Promise(resolve => setTimeout(resolve, millis));
+}
 
 /**
 * check reflection flag
@@ -434,7 +443,7 @@ export async function getPIECEdata(pdaPIECE: PublicKey) {
 		operator: new PublicKey(decodedPIECEstate.operator),
 		balance: new BigNumber("0x" + decodedPIECEstate.balance.toString("hex")),
 		netsum: new BigNumber("0x" + decodedPIECEstate.netsum.toString("hex")),
-		left: new BigNumber("0x" + decodedPIECEstate.netsum.toString("hex")),
+		left: new BigNumber("0x" + decodedPIECEstate.left.toString("hex")),
 		refcount: decodedPIECEstate.refcount,
 		pieceslug: decodedPIECEstate.pieceslug.toString(),
 

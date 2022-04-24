@@ -39,10 +39,10 @@ impl Processor {
 
         let operator        = next_account_info(account_info_iter)?;
         let rent            = next_account_info(account_info_iter)?;
-        let _pdaselfTARGET  = next_account_info(account_info_iter)?;
+        let _pdaselfTARGET  = next_account_info(account_info_iter)?;    // reserved for reflection feature
         let pdaTARGET       = next_account_info(account_info_iter)?;
         let pdaPIECE        = next_account_info(account_info_iter)?;
-        let _pdaselfREF     = next_account_info(account_info_iter)?;
+        let _pdaselfREF     = next_account_info(account_info_iter)?;    // reserved for reflection feature
         let pdaREF          = next_account_info(account_info_iter)?;
 
         // check to make sure tx operator is signer
@@ -51,16 +51,14 @@ impl Processor {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-
         // get REF info
         let mut REFinfo = REF::unpack_unchecked(&pdaREF.try_borrow_data()?)?;
         // get REF flags
         let mut REFflags = unpack_flags(REFinfo.flags);
 
         // verify TARGET is correct
-        // TODO create error for this event
         if pdaTARGET.key != &REFinfo.target {
-            return Err(FracpayError::REFNotOwnedError.into());
+            return Err(FracpayError::TargetMismatchError.into());
         }
 
 
@@ -75,14 +73,14 @@ impl Processor {
             PIECEinfo.balance = 0;
         }
 
-        // verify ref is authentic
+        // verify ref seed comes from piece
         let pdaPIECEstring = pdaPIECE.key.to_string();
         if &seedREF[0..(PUBKEY_LEN - COUNT_LEN)] != pdaPIECEstring[0..(PUBKEY_LEN - COUNT_LEN)].as_bytes() {
             // need to test this logic statement by creating bogus tx
             return Err(FracpayError::REFNotOwnedError.into());
         }
 
-        // verify seed was not spoofed
+        // verify seed and piece was not spoofed
         let (pdaREFcheck, _) = Pubkey::find_program_address(&[&seedREF], &program_id);
         if pdaREFcheck != *pdaREF.key {
             return Err(FracpayError::REFNotOwnedError.into());
@@ -220,7 +218,7 @@ impl Processor {
 
         // as for the selfREF, if connected, above logic applies, 
         // if disconnected, above logic applies
-
+        msg!("{:?}", PIECEinfo.left);
         // final test, was this last tx?
         if PIECEinfo.left == 0 {
             PIECEflags.set(9, false);

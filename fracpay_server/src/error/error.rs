@@ -12,6 +12,9 @@ use thiserror::Error;
 #[derive(Error, Debug, Copy, Clone)]
 pub enum FracpayError {
 
+    // These errors are so egregious that
+    // they should interrupt client
+
     /// Invalid instruction
     #[error("Invalid Instruction")]
     InvalidInstruction,
@@ -36,13 +39,13 @@ pub enum FracpayError {
     #[error("Fatal Flipflop Mismatch")]
     FlipflopMismatchError,
 
-    /// REF Already Paid
-    #[error("REF Already Paid")]
-    AlreadyPaidError,
-
     /// REF does not belong to PIECE
     #[error("REF Isn't Owned By PIECE")]
     REFNotOwnedError,
+
+    /// Target passed mismatches state
+    #[error("Target is not correct.")]
+    TargetMismatchError,
 
 }
 
