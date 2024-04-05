@@ -1,8 +1,3 @@
-#### [..](https://github.com/blairmunroakusaBRANCH/blockchain.solana)
-#### [ROOT](https://github.com/blairmunroakusa)
-#### [TRUNK](https://github.com/blairmunroakusaTRUNK)
-#### [BRANCH](https://github.com/blairmunroakusaBRANCH)
-#### [LEAF](https://github.com/blairmunroakusaLEAF)
 
 So far this project is in coding and testing phase.
 
